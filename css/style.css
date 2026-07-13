@@ -1,0 +1,201 @@
+/* Mapping Movement: NCAA Athletes — shared site styles
+   Desktop-only design (no mobile breakpoints), min viewport ~1200px assumed. */
+
+:root {
+  --color-header:   #156082;
+  --color-body-bg:  #08587A;
+  --color-card:     #A4C1CE;
+  --color-footer:   #4B4F4B;
+  --color-text:     #FFFFFF;
+  --color-text-dark:#17160F;
+
+  /* Free substitutes for the mockup's licensed fonts.
+     Swap these two lines for the Adobe Fonts embed + font-family once you
+     have the Supria Sans Black / Avenir Book web-project link. */
+  --font-heading: 'Anton', 'Arial Narrow', sans-serif;
+  --font-body:    'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-width: 1200px;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-body-bg);
+}
+
+body {
+  background-image:
+    linear-gradient(rgba(8, 88, 122, 0.63), rgba(8, 88, 122, 0.63)),
+    url('../assets/bg-texture.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ---------- Header / nav ---------- */
+
+.site-header {
+  background: var(--color-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+}
+
+.site-title {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  letter-spacing: 0.5px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.site-nav {
+  display: flex;
+  gap: 40px;
+}
+
+.site-nav a {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+/* ---------- Page shell ---------- */
+
+.page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 40px 0;
+}
+
+.two-col {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.two-col .col-text { flex: 1.4; }
+.two-col .col-visual {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.col-visual img { width: 220px; height: auto; }
+
+h2.section-heading {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 16px;
+}
+
+.body-copy p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 18px;
+  max-width: 62ch;
+}
+
+/* ---------- Contact button + card ---------- */
+
+.contact-button {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--color-header);
+  color: var(--color-text);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 32px;
+  cursor: pointer;
+  margin-top: 24px;
+}
+
+.contact-button:hover { background: #1c73a0; }
+
+.contact-card {
+  background: var(--color-card);
+  color: var(--color-text-dark);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 12px;
+  max-width: 320px;
+  font-size: 14px;
+  line-height: 1.6;
+  display: none;
+}
+
+.contact-card.open { display: block; }
+
+.contact-card a { text-decoration: underline; }
+
+/* ---------- Footer credit bar ---------- */
+
+.credit-bar {
+  background: var(--color-footer);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 14px 40px;
+  margin-top: 60px;
+}
+
+/* ---------- Artifact embed section (Football / Basketball) ---------- */
+
+.artifact-section {
+  margin-top: 60px;
+}
+
+.artifact-frame {
+  width: 100%;
+  height: 1400px;
+  border: none;
+  border-radius: 4px;
+  background: #f4f3ef;
+  display: block;
+}
+
+.coming-soon {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  padding: 80px 40px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---------- HAT Lab logo, bottom-right corner ---------- */
+
+.hatlab-corner {
+  position: fixed;
+  bottom: 16px;
+  right: 24px;
+  width: 90px;
+  opacity: 0.9;
+}

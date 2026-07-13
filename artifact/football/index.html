@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025–26 Transfer Portal Flow</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>2025&ndash;26 Transfer Portal Flow</h1>
+    <p>
+      Each ring is a full circle of conferences, subdivided into schools. The
+      <b>outer ring</b> sizes every school by the NCAA's flat 105-player roster
+      limit; the <b>inner ring</b> sizes each school by how many of its players
+      actually entered the transfer portal. The muted gray segment is players
+      who entered the portal but, as of this scrape, hadn't transferred
+      elsewhere at this level (still searching, or moved to the other level /
+      outside FBS &amp; FCS). <b>Hover a conference label</b> to see that
+      conference's transfers in and out, or <b>hover a school</b> on the inner
+      ring to trace its individual transfers &mdash; ribbons are colored by
+      the conference the player left. <b>Click</b> a conference, school, or
+      (once zoomed in) an individual player line to pin its ribbons in place;
+      click it again, or click empty space, to release it. The <b>Out / In /
+      Both</b> toggle narrows a hover or pin to just outgoing transfers, just
+      incoming, or both at once. <b>Zoom into a school's inner-ring segment</b>
+      to split it from one solid block into the individual players behind it
+      &mdash; hover one to see just their own ribbon, or <b>click a colored or
+      gray inner-ring segment</b> (at any zoom) to list every player in it,
+      name and transfer date included, in the side panel on the right. Within
+      a conference, neighboring schools are shaded slightly lighter or darker
+      than each other purely so adjacent schools stay visually distinguishable
+      &mdash; that shade variation doesn't encode any data of its own. The
+      <b>Filters</b> bar below each diagram's controls adds Conference,
+      School, Position, Class, Prior-transfers, and Transfer-date chips
+      &mdash; picking any of them immediately draws every matching ribbon
+      across the whole diagram (no hovering required), dims every
+      non-matching player tick, and shows a live match count. Chips within
+      one row are additive (Sophomore + Junior shows both); rows combine
+      narrower (Sophomore <i>and</i> Cornerback). The Conference and School
+      filters match a player's <i>home</i> conference/school, so picking SEC
+      + Cornerback shows exactly where SEC cornerbacks are transferring to.
+      Every ribbon a filter, hover, or pin puts on screen is clickable
+      &mdash; click one to list the players behind it, filters included, in
+      the side panel.
+    </p>
+    <div class="key">
+      <span><b>Outer ring</b> &mdash; roster (105 cap, every school)</span>
+      <span><b>Inner ring</b> &mdash; portal entries from that school</span>
+      <span><b>Ribbon color</b> &mdash; conference the player left</span>
+      <span><b>Ribbon thickness</b> &mdash; number of players on that path</span>
+      <span><b>Shade within a conference</b> &mdash; just tells schools apart, no meaning of its own</span>
+      <span><b>Gray segment</b> &mdash; no tracked move within this level</span>
+      <span><b>Hover</b> a conference or school to reveal its transfers</span>
+      <span><b>Click</b> to pin ribbons in place; click again to release</span>
+      <span><b>Click a segment</b> to list its players in the side panel</span>
+      <span><b>Filters</b> &mdash; pick chips to draw matching ribbons &amp; see a live count</span>
+      <span><b>Out / In / Both</b> &mdash; filter direction of movement shown</span>
+      <span><b>Zoom into a segment</b> to reveal &amp; hover individual players</span>
+      <span><b>Drag</b> to pan, <b>Ctrl/Cmd+scroll</b> or the +/&minus; buttons to zoom</span>
+    </div>
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-view="separate">Separate levels</button>
+      <button type="button" class="tab-btn" data-view="combined">Combined &mdash; FBS &harr; FCS</button>
+    </div>
+  </header>
+
+  <div id="view-separate" class="view">
+    <div class="stage">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>FBS &mdash; 11 conferences</h2>
+          <div class="panel-controls">
+            <div class="dir-toggle" role="radiogroup" aria-label="Direction">
+              <label><input type="radio" name="dir-fbs" value="both" checked> Both</label>
+              <label><input type="radio" name="dir-fbs" value="out"> Out</label>
+              <label><input type="radio" name="dir-fbs" value="in"> In</label>
+            </div>
+            <label class="toggle-label"><input type="checkbox" id="showall-fbs"> Show all transfers</label>
+            <span class="pin-chip" id="pinchip-fbs"><span id="pinlabel-fbs"></span><button type="button" id="pinclear-fbs" title="Clear pin">&times;</button></span>
+            <div class="zoom-controls">
+              <button type="button" id="zoomin-fbs" title="Zoom in">+</button>
+              <button type="button" id="zoomout-fbs" title="Zoom out">&minus;</button>
+              <button type="button" id="zoomreset-fbs" title="Reset zoom">&#8635;</button>
+            </div>
+          </div>
+        </div>
+        <div class="filter-bar" id="filterbar-fbs">
+          <button type="button" class="filter-toggle" id="filtertoggle-fbs">Filters <span class="filter-count" id="filtercount-fbs"></span></button>
+          <button type="button" class="filter-clear" id="filterclear-fbs">Clear filters</button>
+        </div>
+        <div class="filter-panel-row" id="filterpanelrow-fbs">
+          <div class="filter-panel" id="filterpanel-fbs" hidden>
+            <div class="filter-group"><span class="filter-group-label">Conference</span><div class="filter-chips" id="chips-fbs-conf"></div></div>
+            <div class="filter-group"><span class="filter-group-label">School</span><div class="filter-chips filter-chips-scroll" id="chips-fbs-school"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Position</span><div class="filter-chips" id="chips-fbs-pos"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Class</span><div class="filter-chips" id="chips-fbs-gr"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Prior transfers</span><div class="filter-chips" id="chips-fbs-pt"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Transfer date</span><div class="filter-chips" id="chips-fbs-d"></div></div>
+          </div>
+        </div>
+        <div class="svg-holder"><svg id="svg-fbs" viewBox="-415 -415 830 830"></svg></div>
+        <div class="legend" id="legend-fbs"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>FCS &mdash; 14 conferences</h2>
+          <div class="panel-controls">
+            <div class="dir-toggle" role="radiogroup" aria-label="Direction">
+              <label><input type="radio" name="dir-fcs" value="both" checked> Both</label>
+              <label><input type="radio" name="dir-fcs" value="out"> Out</label>
+              <label><input type="radio" name="dir-fcs" value="in"> In</label>
+            </div>
+            <label class="toggle-label"><input type="checkbox" id="showall-fcs"> Show all transfers</label>
+            <span class="pin-chip" id="pinchip-fcs"><span id="pinlabel-fcs"></span><button type="button" id="pinclear-fcs" title="Clear pin">&times;</button></span>
+            <div class="zoom-controls">
+              <button type="button" id="zoomin-fcs" title="Zoom in">+</button>
+              <button type="button" id="zoomout-fcs" title="Zoom out">&minus;</button>
+              <button type="button" id="zoomreset-fcs" title="Reset zoom">&#8635;</button>
+            </div>
+          </div>
+        </div>
+        <div class="filter-bar" id="filterbar-fcs">
+          <button type="button" class="filter-toggle" id="filtertoggle-fcs">Filters <span class="filter-count" id="filtercount-fcs"></span></button>
+          <button type="button" class="filter-clear" id="filterclear-fcs">Clear filters</button>
+        </div>
+        <div class="filter-panel-row" id="filterpanelrow-fcs">
+          <div class="filter-panel" id="filterpanel-fcs" hidden>
+            <div class="filter-group"><span class="filter-group-label">Conference</span><div class="filter-chips" id="chips-fcs-conf"></div></div>
+            <div class="filter-group"><span class="filter-group-label">School</span><div class="filter-chips filter-chips-scroll" id="chips-fcs-school"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Position</span><div class="filter-chips" id="chips-fcs-pos"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Class</span><div class="filter-chips" id="chips-fcs-gr"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Prior transfers</span><div class="filter-chips" id="chips-fcs-pt"></div></div>
+            <div class="filter-group"><span class="filter-group-label">Transfer date</span><div class="filter-chips" id="chips-fcs-d"></div></div>
+          </div>
+        </div>
+        <div class="svg-holder"><svg id="svg-fcs" viewBox="-415 -415 830 830"></svg></div>
+        <div class="legend" id="legend-fcs"></div>
+      </section>
+    </div>
+
+    <footer>
+      Built from the scraped On3 transfer-portal wire (July 2025&ndash;July 2026).
+      Roster size is a fixed 105 for every school (current NCAA D1 limit), not a
+      scraped value. Movement (ribbons) only connects two schools at the SAME
+      level &mdash; a player who moved from FCS to FBS (or vice versa) counts
+      toward their origin school's inner-ring size but has no ribbon in either
+      diagram, since each circle only tracks its own level. See the
+      <b>Combined</b> tab above for that cross-level movement.
+    </footer>
+  </div>
+
+  <div id="view-combined" class="view" style="display:none">
+    <div class="panel panel-wide">
+      <div class="panel-head">
+        <h2>FBS &harr; FCS &mdash; combined flow</h2>
+        <div class="panel-controls">
+          <div class="dir-toggle" role="radiogroup" aria-label="Direction">
+            <label><input type="radio" name="dir-combined" value="both" checked> Both</label>
+            <label><input type="radio" name="dir-combined" value="out"> Out</label>
+            <label><input type="radio" name="dir-combined" value="in"> In</label>
+          </div>
+          <label class="toggle-label"><input type="checkbox" id="showall-combined"> Show all transfers</label>
+          <span class="pin-chip" id="pinchip-combined"><span id="pinlabel-combined"></span><button type="button" id="pinclear-combined" title="Clear pin">&times;</button></span>
+          <div class="zoom-controls">
+            <button type="button" id="zoomin-combined" title="Zoom in">+</button>
+            <button type="button" id="zoomout-combined" title="Zoom out">&minus;</button>
+            <button type="button" id="zoomreset-combined" title="Reset zoom">&#8635;</button>
+          </div>
+        </div>
+      </div>
+      <div class="filter-bar" id="filterbar-combined">
+        <button type="button" class="filter-toggle" id="filtertoggle-combined">Filters <span class="filter-count" id="filtercount-combined"></span></button>
+        <button type="button" class="filter-clear" id="filterclear-combined">Clear filters</button>
+      </div>
+      <div class="filter-panel-row" id="filterpanelrow-combined">
+        <div class="filter-panel" id="filterpanel-combined" hidden>
+          <div class="filter-group"><span class="filter-group-label">Conference</span><div class="filter-chips" id="chips-combined-conf"></div></div>
+          <div class="filter-group"><span class="filter-group-label">School</span><div class="filter-chips filter-chips-scroll" id="chips-combined-school"></div></div>
+          <div class="filter-group"><span class="filter-group-label">Position</span><div class="filter-chips" id="chips-combined-pos"></div></div>
+          <div class="filter-group"><span class="filter-group-label">Class</span><div class="filter-chips" id="chips-combined-gr"></div></div>
+          <div class="filter-group"><span class="filter-group-label">Prior transfers</span><div class="filter-chips" id="chips-combined-pt"></div></div>
+          <div class="filter-group"><span class="filter-group-label">Transfer date</span><div class="filter-chips" id="chips-combined-d"></div></div>
+        </div>
+      </div>
+      <div class="svg-holder svg-holder-wide"><svg id="svg-combined" viewBox="-800 -380 1600 760"></svg></div>
+      <div class="legend" id="legend-combined"></div>
+    </div>
+
+    <footer>
+      Same two rings (roster outer, portal entries inner) as the separate
+      view, but FBS (left) and FCS (right) now share one diagram, and a
+      ribbon crossing the gap between them represents a player who
+      transferred between levels &mdash; 123 FBS&rarr;FCS and 418
+      FCS&rarr;FBS in this data. Same-level movement still shows too, drawn
+      within each side exactly as in the separate view.
+    </footer>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="side-panel">
+  <div id="side-panel-header">
+    <div id="side-panel-title"></div>
+    <button type="button" id="side-panel-close" title="Close">&times;</button>
+  </div>
+  <div id="side-panel-count"></div>
+  <div id="side-panel-body"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="viz.js"></script>
+</body>
+</html>
