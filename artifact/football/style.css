@@ -1,3 +1,11 @@
+  @font-face {
+    font-family: 'Supria Sans Black';
+    src: url('fonts/Supria Sans Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --bg-page:    #f4f3ef;
     --bg-panel:   #fcfcfb;
@@ -9,6 +17,7 @@
     --tooltip-bg: #17160f;
     --tooltip-ink:#fcfcfb;
     --accent:     #b26f00;
+    --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
 
     --term-outer:            #0284c7;
     --term-inner:            #0d9488;
@@ -128,8 +137,9 @@
   }
 
   header h1 {
+    font-family: var(--font-heading);
     font-size: 26px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: -0.01em;
     margin: 0 0 6px;
     text-wrap: balance;
@@ -151,9 +161,10 @@
   }
   .desc-section { margin-bottom: 0; }
   .desc-label {
+    font-family: var(--font-heading);
     margin: 0 0 3px;
     font-size: 12px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--ink-1);
@@ -201,10 +212,10 @@
     border-bottom: 2px solid transparent;
     padding: 8px 4px 10px;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 900;
     color: var(--ink-3);
     cursor: pointer;
-    font-family: inherit;
+    font-family: var(--font-heading);
   }
   .tab-btn:hover { color: var(--ink-2); }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -235,8 +246,9 @@
     flex-wrap: wrap;
   }
   .panel h2 {
+    font-family: var(--font-heading);
     font-size: 15px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     margin: 0;
@@ -452,9 +464,10 @@
   }
 
   .center-title {
+    font-family: var(--font-heading);
     text-anchor: middle;
     font-size: 15px;
-    font-weight: 650;
+    font-weight: 900;
     fill: var(--ink-1);
   }
   .center-stat {
@@ -463,8 +476,9 @@
     fill: var(--ink-3);
   }
   .conf-label {
+    font-family: var(--font-heading);
     font-size: 11.5px;
-    font-weight: 600;
+    font-weight: 900;
     letter-spacing: 0.01em;
     fill: var(--ink-1);
   }
