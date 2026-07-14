@@ -141,6 +141,7 @@
     font-size: 26px;
     font-weight: 900;
     letter-spacing: -0.01em;
+    text-transform: uppercase;
     margin: 0 0 6px;
     text-wrap: balance;
   }
@@ -476,9 +477,8 @@
     fill: var(--ink-3);
   }
   .conf-label {
-    font-family: var(--font-heading);
     font-size: 11.5px;
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: 0.01em;
     fill: var(--ink-1);
   }
