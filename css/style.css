@@ -177,14 +177,27 @@ h2.section-heading {
   margin-top: 60px;
 }
 
-/* About page only: pin the credit bar to the bottom of the viewport
-   instead of letting it sit in-flow after the short intro content. */
-.page-about .credit-bar {
+/* About page only: pin the logo + credit bar together to the bottom of
+   the viewport, logo stacked above the bar, instead of letting the bar
+   sit in-flow after the short intro content and the logo overlap it. */
+.page-about .about-footer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.page-about .about-footer .hatlab-corner {
+  position: static;
+  margin: 0 24px 12px 0;
+}
+
+.page-about .about-footer .credit-bar {
   margin-top: 0;
+  width: 100%;
 }
 
 .page-about .page-content {
