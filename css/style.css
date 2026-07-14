@@ -9,6 +9,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Sailec';
+  src: url('../assets/fonts/Sailec-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-header:   #156082;
   --color-body-bg:  #08587A;
@@ -18,7 +26,7 @@
   --color-text-dark:#17160F;
 
   --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
-  --font-body:    'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  --font-body:    'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
