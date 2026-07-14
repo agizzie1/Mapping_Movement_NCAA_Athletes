@@ -9,6 +9,21 @@
     --tooltip-bg: #17160f;
     --tooltip-ink:#fcfcfb;
     --accent:     #b26f00;
+
+    --term-outer:            #0284c7;
+    --term-inner:            #0d9488;
+    --term-ribbon-color:     #7c3aed;
+    --term-ribbon-thickness: #ea580c;
+    --term-shade:            #65a30d;
+    --term-gray:             #e11d48;
+    --term-hover:            #4f46e5;
+    --term-click:            #d97706;
+    --term-click-segment:    #db2777;
+    --term-filters:          #059669;
+    --term-inout:            #c026d3;
+    --term-zoom:             #0891b2;
+    --term-drag:             #dc2626;
+    --term-scroll:           #9333ea;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -22,6 +37,21 @@
       --tooltip-bg: #f6f5ef;
       --tooltip-ink:#17160f;
       --accent:     #d9a441;
+
+      --term-outer:            #38bdf8;
+      --term-inner:            #2dd4bf;
+      --term-ribbon-color:     #a78bfa;
+      --term-ribbon-thickness: #fb923c;
+      --term-shade:            #a3e635;
+      --term-gray:             #fb7185;
+      --term-hover:            #818cf8;
+      --term-click:            #fbbf24;
+      --term-click-segment:    #f472b6;
+      --term-filters:          #34d399;
+      --term-inout:            #e879f9;
+      --term-zoom:             #22d3ee;
+      --term-drag:             #f87171;
+      --term-scroll:           #c084fc;
     }
   }
   :root[data-theme="dark"] {
@@ -35,6 +65,21 @@
     --tooltip-bg: #f6f5ef;
     --tooltip-ink:#17160f;
     --accent:     #d9a441;
+
+    --term-outer:            #38bdf8;
+    --term-inner:            #2dd4bf;
+    --term-ribbon-color:     #a78bfa;
+    --term-ribbon-thickness: #fb923c;
+    --term-shade:            #a3e635;
+    --term-gray:             #fb7185;
+    --term-hover:            #818cf8;
+    --term-click:            #fbbf24;
+    --term-click-segment:    #f472b6;
+    --term-filters:          #34d399;
+    --term-inout:            #e879f9;
+    --term-zoom:             #22d3ee;
+    --term-drag:             #f87171;
+    --term-scroll:           #c084fc;
   }
   :root[data-theme="light"] {
     --bg-page:    #f4f3ef;
@@ -47,6 +92,21 @@
     --tooltip-bg: #17160f;
     --tooltip-ink:#fcfcfb;
     --accent:     #b26f00;
+
+    --term-outer:            #0284c7;
+    --term-inner:            #0d9488;
+    --term-ribbon-color:     #7c3aed;
+    --term-ribbon-thickness: #ea580c;
+    --term-shade:            #65a30d;
+    --term-gray:             #e11d48;
+    --term-hover:            #4f46e5;
+    --term-click:            #d97706;
+    --term-click-segment:    #db2777;
+    --term-filters:          #059669;
+    --term-inout:            #c026d3;
+    --term-zoom:             #0891b2;
+    --term-drag:             #dc2626;
+    --term-scroll:           #9333ea;
   }
 
   * { box-sizing: border-box; }
@@ -81,6 +141,28 @@
     line-height: 1.55;
     max-width: 78ch;
   }
+  .desc { max-width: 1400px; }
+  .desc-lead { margin: 0 0 12px; }
+  .desc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+    row-gap: 14px;
+  }
+  .desc-section { margin-bottom: 0; }
+  .desc-label {
+    margin: 0 0 3px;
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-1);
+  }
+  .desc-section p { margin: 0 0 6px; }
+  .desc-section p:last-child { margin-bottom: 0; }
+  @media (max-width: 860px) {
+    .desc-grid { grid-template-columns: 1fr; }
+  }
   header .key {
     margin-top: 10px;
     display: flex;
@@ -90,6 +172,21 @@
     color: var(--ink-3);
   }
   header .key b { color: var(--ink-2); font-weight: 600; }
+
+  .term-outer            { color: var(--term-outer) !important; }
+  .term-inner            { color: var(--term-inner) !important; }
+  .term-ribbon-color     { color: var(--term-ribbon-color) !important; }
+  .term-ribbon-thickness { color: var(--term-ribbon-thickness) !important; }
+  .term-shade            { color: var(--term-shade) !important; }
+  .term-gray             { color: var(--term-gray) !important; }
+  .term-hover            { color: var(--term-hover) !important; }
+  .term-click            { color: var(--term-click) !important; }
+  .term-click-segment    { color: var(--term-click-segment) !important; }
+  .term-filters          { color: var(--term-filters) !important; }
+  .term-inout            { color: var(--term-inout) !important; }
+  .term-zoom             { color: var(--term-zoom) !important; }
+  .term-drag             { color: var(--term-drag) !important; }
+  .term-scroll           { color: var(--term-scroll) !important; }
 
   .tabs {
     margin-top: 16px;

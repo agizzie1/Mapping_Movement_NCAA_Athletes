@@ -10,55 +10,78 @@
 <div class="wrap">
   <header>
     <h1>2025&ndash;26 Transfer Portal Flow</h1>
-    <p>
-      Each ring is a full circle of conferences, subdivided into schools. The
-      <b>outer ring</b> sizes every school by the NCAA's flat 105-player roster
-      limit; the <b>inner ring</b> sizes each school by how many of its players
-      actually entered the transfer portal. The muted gray segment is players
-      who entered the portal but, as of this scrape, hadn't transferred
-      elsewhere at this level (still searching, or moved to the other level /
-      outside FBS &amp; FCS). <b>Hover a conference label</b> to see that
-      conference's transfers in and out, or <b>hover a school</b> on the inner
-      ring to trace its individual transfers &mdash; ribbons are colored by
-      the conference the player left. <b>Click</b> a conference, school, or
-      (once zoomed in) an individual player line to pin its ribbons in place;
-      click it again, or click empty space, to release it. The <b>Out / In /
-      Both</b> toggle narrows a hover or pin to just outgoing transfers, just
-      incoming, or both at once. <b>Zoom into a school's inner-ring segment</b>
-      to split it from one solid block into the individual players behind it
-      &mdash; hover one to see just their own ribbon, or <b>click a colored or
-      gray inner-ring segment</b> (at any zoom) to list every player in it,
-      name and transfer date included, in the side panel on the right. Within
-      a conference, neighboring schools are shaded slightly lighter or darker
-      than each other purely so adjacent schools stay visually distinguishable
-      &mdash; that shade variation doesn't encode any data of its own. The
-      <b>Filters</b> bar below each diagram's controls adds Conference,
-      School, Position, Class, Prior-transfers, and Transfer-date chips
-      &mdash; picking any of them immediately draws every matching ribbon
-      across the whole diagram (no hovering required), dims every
-      non-matching player tick, and shows a live match count. Chips within
-      one row are additive (Sophomore + Junior shows both); rows combine
-      narrower (Sophomore <i>and</i> Cornerback). The Conference and School
-      filters match a player's <i>home</i> conference/school, so picking SEC
-      + Cornerback shows exactly where SEC cornerbacks are transferring to.
-      Every ribbon a filter, hover, or pin puts on screen is clickable
-      &mdash; click one to list the players behind it, filters included, in
-      the side panel.
-    </p>
+    <div class="desc">
+      <p class="desc-lead">Each ring is a full circle of conferences, subdivided into schools.</p>
+
+      <div class="desc-grid">
+        <div class="desc-section">
+          <p class="desc-label">Outer ring</p>
+          <p>The <b class="term-outer">outer ring</b> represents NCAA member schools and conferences,
+          sized by a flat 105-player roster limit. Within a conference, neighboring
+          schools are shaded slightly lighter or darker than each other purely so
+          adjacent schools stay visually distinguishable &mdash; that shade
+          variation doesn't encode any data of its own.</p>
+        </div>
+
+        <div class="desc-section">
+          <p class="desc-label">Inner ring</p>
+          <p>The <b class="term-inner">inner ring</b> sizes each school by how many of its players
+          actually entered the transfer portal. The muted <b class="term-gray">gray</b> segments
+          represent players who entered the portal but, as of this scrape,
+          hadn't transferred elsewhere at this level (still searching, or moved
+          to the other level / outside FBS &amp; FCS).</p>
+        </div>
+
+        <div class="desc-section">
+          <p class="desc-label">Functions</p>
+          <p><b class="term-zoom">Zoom into a school's inner-ring segment</b> to split it from one
+          solid block into the individual players behind it &mdash; hover one to
+          see just their own ribbon, or <b class="term-click-segment">click a colored or gray inner-ring
+          segment</b> (at any zoom) to list every player in it, name and
+          transfer date included, in the side panel on the right.</p>
+          <p><b class="term-hover">Hover a conference label</b> to see that conference's transfers
+          in and out.</p>
+          <p><b class="term-hover">Hover a school</b> on the inner ring to trace its individual
+          transfers &mdash; ribbons are colored by the conference the player
+          left.</p>
+          <p><b class="term-click">Click</b> a conference, school, or (once zoomed in) an
+          individual player line to pin its ribbons in place; click it again,
+          or click empty space, to release it.</p>
+          <p>The <b class="term-inout">Out / In / Both</b> toggle narrows a hover or pin to just
+          outgoing transfers, just incoming, or both at once.</p>
+        </div>
+
+        <div class="desc-section">
+          <p class="desc-label">Filters</p>
+          <p>The <b class="term-filters">Filters</b> bar below each diagram's controls adds
+          Conference, School, Position, Class, Prior-transfers, and
+          Transfer-date chips &mdash; picking any of them immediately draws
+          every matching ribbon across the whole diagram (no hovering
+          required), dims every non-matching player tick, and shows a live
+          match count. Chips within one row are additive (Sophomore + Junior
+          shows both); rows combine narrower (Sophomore <i>and</i> Cornerback).
+          The Conference and School filters match a player's <i>home</i>
+          conference/school, so picking SEC + Cornerback shows exactly where
+          SEC cornerbacks are transferring to. Every ribbon a filter, hover, or
+          pin puts on screen is clickable &mdash; click one to list the players
+          behind it, filters included, in the side panel.</p>
+        </div>
+      </div>
+    </div>
     <div class="key">
-      <span><b>Outer ring</b> &mdash; roster (105 cap, every school)</span>
-      <span><b>Inner ring</b> &mdash; portal entries from that school</span>
-      <span><b>Ribbon color</b> &mdash; conference the player left</span>
-      <span><b>Ribbon thickness</b> &mdash; number of players on that path</span>
-      <span><b>Shade within a conference</b> &mdash; just tells schools apart, no meaning of its own</span>
-      <span><b>Gray segment</b> &mdash; no tracked move within this level</span>
-      <span><b>Hover</b> a conference or school to reveal its transfers</span>
-      <span><b>Click</b> to pin ribbons in place; click again to release</span>
-      <span><b>Click a segment</b> to list its players in the side panel</span>
-      <span><b>Filters</b> &mdash; pick chips to draw matching ribbons &amp; see a live count</span>
-      <span><b>Out / In / Both</b> &mdash; filter direction of movement shown</span>
-      <span><b>Zoom into a segment</b> to reveal &amp; hover individual players</span>
-      <span><b>Drag</b> to pan, <b>Ctrl/Cmd+scroll</b> or the +/&minus; buttons to zoom</span>
+      <span><b class="term-outer">Outer ring</b> &mdash; roster (105 cap, every school)</span>
+      <span><b class="term-inner">Inner ring</b> &mdash; portal entries from that school</span>
+      <span><b class="term-ribbon-color">Ribbon color</b> &mdash; conference the player left</span>
+      <span><b class="term-ribbon-thickness">Ribbon thickness</b> &mdash; number of players on that path</span>
+      <span><b class="term-shade">Shade within a conference</b> &mdash; just tells schools apart, no meaning of its own</span>
+      <span><b class="term-gray">Gray segment</b> &mdash; no tracked move within this level</span>
+      <span><b class="term-hover">Hover</b> a conference or school to reveal its transfers</span>
+      <span><b class="term-click">Click</b> to pin ribbons in place; click again to release</span>
+      <span><b class="term-click-segment">Click a segment</b> to list its players in the side panel</span>
+      <span><b class="term-filters">Filters</b> &mdash; pick chips to draw matching ribbons &amp; see a live count</span>
+      <span><b class="term-inout">Out / In / Both</b> &mdash; filter direction of movement shown</span>
+      <span><b class="term-zoom">Zoom into a segment</b> to reveal &amp; hover individual players</span>
+      <span><b class="term-drag">Drag</b> to pan, <b class="term-scroll">Ctrl/Cmd+scroll</b> or the +/&minus; buttons to zoom</span>
     </div>
     <div class="tabs">
       <button type="button" class="tab-btn active" data-view="separate">Separate levels</button>
