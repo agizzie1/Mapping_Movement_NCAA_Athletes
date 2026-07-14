@@ -190,6 +190,18 @@ h2.section-heading {
   letter-spacing: 1px;
 }
 
+/* ---------- Football page color override ---------- */
+
+body.football-page {
+  --color-header: #3D6A8A;
+}
+
+body.football-page {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+    url('../assets/bg-texture.jpg');
+}
+
 /* ---------- HAT Lab logo, bottom-right corner ---------- */
 
 .hatlab-corner {
