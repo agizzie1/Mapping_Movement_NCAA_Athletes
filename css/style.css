@@ -1,6 +1,14 @@
 /* Mapping Movement: NCAA Athletes — shared site styles
    Desktop-only design (no mobile breakpoints), min viewport ~1200px assumed. */
 
+@font-face {
+  font-family: 'Supria Sans Black';
+  src: url('../assets/fonts/Supria Sans Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-header:   #156082;
   --color-body-bg:  #08587A;
@@ -9,10 +17,7 @@
   --color-text:     #FFFFFF;
   --color-text-dark:#17160F;
 
-  /* Free substitutes for the mockup's licensed fonts.
-     Swap these two lines for the Adobe Fonts embed + font-family once you
-     have the Supria Sans Black / Avenir Book web-project link. */
-  --font-heading: 'Anton', 'Arial Narrow', sans-serif;
+  --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
   --font-body:    'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
 }
 
