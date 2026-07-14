@@ -757,9 +757,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     .attr("d", d => arcOuter({ startAngle: d.startAngle, endAngle: d.endAngle }))
     .attr("fill", d => shadeForSchool(colorOf(d.conference), d, mode))
     .attr("data-school", d => d.school)
-    .on("mousemove", (event, d) => {
+    .on("mouseenter", (event, d) => {
       showTip(`<strong>${d.school}</strong><br>${d.conference}<br>Roster limit: ${d.roster}`, event);
     })
+    .on("mousemove", moveTip)
     .on("mouseleave", hideTip)
     .on("click", (event, d) => { if (!zoomCtl.wasPanned()) togglePin({ type: "school", key: d.school }); });
 
@@ -784,9 +785,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         .attr("d", arcInner({ startAngle: seg.startAngle, endAngle: seg.endAngle }))
         .attr("fill", shadeForSchool(baseColor, d, mode))
         .attr("data-target", seg.target)
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           showTip(`<strong>${d.school} &rarr; ${seg.target}</strong><br>${seg.count} player${seg.count === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
         })
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip)
         .on("click", (event) => {
           event.stopPropagation();
@@ -832,9 +834,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         .attr("class", "inner-seg inner-leftover")
         .attr("d", arcInner({ startAngle: sub.leftoverStart, endAngle: sub.leftoverEnd }))
         .attr("fill", "var(--leftover)")
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           showTip(`<strong>${d.school}</strong><br>${players.leftover.length} player${players.leftover.length === 1 ? "" : "s"} still in the portal, or transferred outside ${universeKey.toUpperCase()}<br><em>Click for the full list</em>`, event);
         })
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip)
         .on("click", (event) => {
           event.stopPropagation();
@@ -954,9 +957,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           showTip(`<strong>${label}</strong><br>${deps.length} player${deps.length === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
         })
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip)
         .on("click", (event) => {
           event.stopPropagation();
@@ -982,9 +986,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         .attr("fill", colorOf(otherConf))
         .attr("stroke", colorOf(otherConf))
         .style("opacity", opacityScale(deps.length))
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           showTip(`<strong>${label}</strong><br>${deps.length} player${deps.length === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
         })
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip)
         .on("click", (event) => {
           event.stopPropagation();
@@ -1022,9 +1027,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
           .attr("fill", baseColor)
           .attr("stroke", baseColor)
           .attr("data-pair-key", `${school}::${seg.target}`)
-          .on("mousemove", (event) => {
+          .on("mouseenter", (event) => {
             showTip(`<strong>${school} &rarr; ${seg.target}</strong><br>${count} player${count === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
           })
+          .on("mousemove", moveTip)
           .on("mouseleave", hideTip)
           .on("click", (event) => {
             event.stopPropagation();
@@ -1060,9 +1066,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
           .attr("fill", srcColor)
           .attr("stroke", srcColor)
           .attr("data-pair-key", `${f.source}::${school}`)
-          .on("mousemove", (event) => {
+          .on("mouseenter", (event) => {
             showTip(`<strong>${f.source} &rarr; ${school}</strong><br>${count} player${count === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
           })
+          .on("mousemove", moveTip)
           .on("mouseleave", hideTip)
           .on("click", (event) => {
             event.stopPropagation();
@@ -1100,10 +1107,12 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       .style("opacity", 0.9)
       .on("click", (event) => { event.stopPropagation(); togglePlayerPin(school, dep, a0, a1); });
     if (interactive) {
-      sel.on("mousemove", (event) => { showTip(`<strong>${dep.n}</strong><br>${school} &rarr; ${dep.t}<br>${dep.d}<br>${playerMetaHtml(dep)}`, event); cancelPlayerHoverClear(); })
+      sel.on("mouseenter", (event) => { showTip(`<strong>${dep.n}</strong><br>${school} &rarr; ${dep.t}<br>${dep.d}<br>${playerMetaHtml(dep)}`, event); cancelPlayerHoverClear(); })
+        .on("mousemove", (event) => { moveTip(event); cancelPlayerHoverClear(); })
         .on("mouseleave", () => schedulePlayerHoverClear());
     } else {
-      sel.on("mousemove", (event) => showTip(`<strong>${dep.n}</strong><br>${school} &rarr; ${dep.t}<br>${dep.d}<br>${playerMetaHtml(dep)}`, event))
+      sel.on("mouseenter", (event) => showTip(`<strong>${dep.n}</strong><br>${school} &rarr; ${dep.t}<br>${dep.d}<br>${playerMetaHtml(dep)}`, event))
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip);
     }
   }
@@ -1157,9 +1166,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           showTip(`<strong>${label}</strong><br>${deps.length} player${deps.length === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event);
         })
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip)
         .on("click", (event) => {
           event.stopPropagation();
@@ -1529,7 +1539,8 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
       .attr("d", d => arcOuter({ startAngle: d.startAngle, endAngle: d.endAngle }))
       .attr("fill", d => shadeForSchool(colorOfConf(d.conference, mode), d, mode))
       .attr("data-school", d => d.school)
-      .on("mousemove", (event, d) => showTip(`<strong>${d.school}</strong><br>${d.conference}<br>Roster limit: ${d.roster}`, event))
+      .on("mouseenter", (event, d) => showTip(`<strong>${d.school}</strong><br>${d.conference}<br>Roster limit: ${d.roster}`, event))
+      .on("mousemove", moveTip)
       .on("mouseleave", hideTip)
       .on("click", (event, d) => { if (!zoomCtl.wasPanned()) togglePin({ type: "school", key: d.school }); });
 
@@ -1552,7 +1563,8 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
           .attr("class", "inner-seg")
           .attr("d", arcInner({ startAngle: seg.startAngle, endAngle: seg.endAngle }))
           .attr("fill", shadeForSchool(baseColor, d, mode))
-          .on("mousemove", (event) => showTip(`<strong>${d.school} &rarr; ${seg.target}</strong><br>${seg.count} player${seg.count === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event))
+          .on("mouseenter", (event) => showTip(`<strong>${d.school} &rarr; ${seg.target}</strong><br>${seg.count} player${seg.count === 1 ? "" : "s"}<br><em>Click for the full list</em>`, event))
+          .on("mousemove", moveTip)
           .on("mouseleave", hideTip)
           .on("click", (event) => {
             event.stopPropagation();
@@ -1597,9 +1609,10 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
           .attr("class", "inner-seg inner-leftover")
           .attr("d", arcInner({ startAngle: sub.leftoverStart, endAngle: sub.leftoverEnd }))
           .attr("fill", "var(--leftover)")
-          .on("mousemove", (event) => {
+          .on("mouseenter", (event) => {
             showTip(`<strong>${d.school}</strong><br>${players.leftover.length} player${players.leftover.length === 1 ? "" : "s"} still in the portal, or transferred to a non-FBS/FCS program<br><em>Click for the full list</em>`, event);
           })
+          .on("mousemove", moveTip)
           .on("mouseleave", hideTip)
           .on("click", (event) => {
             event.stopPropagation();
@@ -1696,10 +1709,12 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     if (opts.pairKey) sel.attr("data-pair-key", opts.pairKey);
     if (opts.onClick) sel.on("click", opts.onClick);
     if (opts.interactive) {
-      sel.on("mousemove", (event) => { showTip(tipHtml, event); cancelPlayerHoverClear(); })
+      sel.on("mouseenter", (event) => { showTip(tipHtml, event); cancelPlayerHoverClear(); })
+        .on("mousemove", (event) => { moveTip(event); cancelPlayerHoverClear(); })
         .on("mouseleave", () => schedulePlayerHoverClear());
     } else {
-      sel.on("mousemove", (event) => showTip(tipHtml, event))
+      sel.on("mouseenter", (event) => showTip(tipHtml, event))
+        .on("mousemove", moveTip)
         .on("mouseleave", hideTip);
     }
   }
