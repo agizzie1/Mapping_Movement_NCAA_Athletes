@@ -21,6 +21,7 @@ const SCHOOL_PAD = 0.0022;
 const CONF_PAD = 0.028;
 const MIN_PORTAL_WEIGHT = 0.6; // visual floor so 0-entry schools still get a sliver
 const ZOOM_DETAIL_THRESHOLD = 3; // zoom scale (k) past which individual player lines become interactive
+const ZOOM_OUT_FLOOR = 0.4; // how far below 100% the +/- buttons, Ctrl/Cmd+scroll, and pinch can shrink the diagram
 
 function currentMode() {
   const stamped = document.documentElement.getAttribute("data-theme");
@@ -620,7 +621,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   // thinner at any given zoom level -- it needs a much higher zoom ceiling
   // to reach the same on-screen tick width FCS already gets at a modest zoom.
   const maxZoom = universeKey === "fbs" ? 150 : 30;
-  const zoomCtl = attachZoom(svg, root, [1, maxZoom], (k) => {
+  const zoomCtl = attachZoom(svg, root, [ZOOM_OUT_FLOOR, maxZoom], (k) => {
     zoomDetail = k >= ZOOM_DETAIL_THRESHOLD;
     root.classed("zoom-detail", zoomDetail);
     currentZoomK = k;
@@ -1399,7 +1400,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
   // accommodate the denser FBS side (see the equivalent note in
   // renderUniverse) even though that leaves more zoom headroom than FCS
   // strictly needs on its own.
-  const zoomCtl = attachZoom(svg, root, [1, 170], (k) => {
+  const zoomCtl = attachZoom(svg, root, [ZOOM_OUT_FLOOR, 170], (k) => {
     zoomDetail = k >= ZOOM_DETAIL_THRESHOLD;
     root.classed("zoom-detail", zoomDetail);
     currentZoomK = k;
