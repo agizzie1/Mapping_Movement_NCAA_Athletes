@@ -43,6 +43,7 @@ a { color: inherit; text-decoration: none; }
 
 .site-header {
   background: var(--color-header);
+  color: var(--color-text-dark);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -191,10 +192,6 @@ h2.section-heading {
 }
 
 /* ---------- Football page color override ---------- */
-
-body.football-page {
-  --color-header: #3D6A8A;
-}
 
 body.football-page {
   background-image:
