@@ -683,6 +683,57 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   }
   function hideTip() { tooltip.style("display", "none"); }
 
+  // ---- player search box positioning ---------------------------------
+  // Ported from the basketball diagram (which also has a conference
+  // pin-tooltip using this same corner logic; this diagram doesn't have
+  // that box, but the player-search box needs the same placement math).
+  // Prefers sitting fully outside the diagram's left/right edge, falling
+  // back to that side's corner of the SVG's own square canvas when the
+  // viewport's too narrow, and never sits on top of the Filters panel.
+  function pinTipFilterFloor() {
+    const pad = 10;
+    const panel = document.getElementById(`filterpanel-${universeKey}`);
+    if (panel && !panel.hasAttribute("hidden")) {
+      return panel.getBoundingClientRect().bottom + pad;
+    }
+    const toggle = document.getElementById(`filtertoggle-${universeKey}`);
+    if (toggle) {
+      return toggle.getBoundingClientRect().bottom + pad + 10;
+    }
+    return null;
+  }
+  function placeTip(tipSelection, anchorRect) {
+    const pad = 14;
+    const svgRect = svgEl.getBoundingClientRect();
+    const tipRect = tipSelection.node().getBoundingClientRect();
+    const onLeft = (anchorRect.left + anchorRect.width / 2) < (svgRect.left + svgRect.width / 2);
+    const onTop = (anchorRect.top + anchorRect.height / 2) < (svgRect.top + svgRect.height / 2);
+
+    let left = onLeft ? (svgRect.left - pad - tipRect.width) : (svgRect.right + pad);
+    const fitsOutside = left >= 8 && left + tipRect.width <= window.innerWidth - 8;
+    let top;
+    if (fitsOutside) {
+      top = anchorRect.top;
+    } else {
+      left = onLeft ? (svgRect.left + pad) : (svgRect.right - pad - tipRect.width);
+      top = onTop ? (svgRect.top + pad) : (svgRect.bottom - pad - tipRect.height);
+    }
+    left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - tipRect.height - 8));
+    const filterFloor = pinTipFilterFloor();
+    if (filterFloor != null) top = Math.max(top, filterFloor);
+    tipSelection.style("left", (left + window.scrollX) + "px").style("top", (top + window.scrollY) + "px");
+  }
+  const playerSearch = createPlayerSearchController({
+    universeKey, d3,
+    getEntries: () => tickRegistry,
+    placeTip,
+    routeHtml: (school, dep) => `${school} &mdash; ${depStatusHtml(dep)}`,
+    playerKey,
+    getPin: () => pin,
+    setPin: (next) => setPin(next),
+  });
+
   // ---- filters: chip UI + filtered-count helpers used by ribbon opacity --
   const allDeps = [];
   for (const s of prepared.innerLayout) for (const dep of s.departures || []) allDeps.push({ school: s.school, dep, conf: s.conference });
@@ -1299,6 +1350,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     }
     restoreBaseDim();
     updatePinIndicator();
+    playerSearch.refresh();
   }
   function setPin(next) { pin = next; pinnedSegKey = null; redrawPin(); }
   function togglePin(candidate) {
@@ -1368,6 +1420,9 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     zoomIn: () => zoomCtl.zoomBy(1.5),
     zoomOut: () => zoomCtl.zoomBy(1 / 1.5),
     zoomReset: () => zoomCtl.reset(),
+    searchPlayers: playerSearch.searchPlayers,
+    selectResult: playerSearch.selectResult,
+    clearSearch: playerSearch.clearSearch,
   };
 }
 
@@ -1454,6 +1509,54 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     tooltip.style("left", (event.clientX + pad) + "px").style("top", (event.clientY + pad) + "px");
   }
   function hideTip() { tooltip.style("display", "none"); }
+
+  // ---- player search box positioning (see renderUniverse's copy of this
+  // for the full explanation; "combined" is hardcoded here the same way
+  // the rest of this function hardcodes it instead of taking a universeKey
+  // param) ----------------------------------------------------------------
+  function pinTipFilterFloor() {
+    const pad = 10;
+    const panel = document.getElementById("filterpanel-combined");
+    if (panel && !panel.hasAttribute("hidden")) {
+      return panel.getBoundingClientRect().bottom + pad;
+    }
+    const toggle = document.getElementById("filtertoggle-combined");
+    if (toggle) {
+      return toggle.getBoundingClientRect().bottom + pad + 10;
+    }
+    return null;
+  }
+  function placeTip(tipSelection, anchorRect) {
+    const pad = 14;
+    const svgRect = svgEl.getBoundingClientRect();
+    const tipRect = tipSelection.node().getBoundingClientRect();
+    const onLeft = (anchorRect.left + anchorRect.width / 2) < (svgRect.left + svgRect.width / 2);
+    const onTop = (anchorRect.top + anchorRect.height / 2) < (svgRect.top + svgRect.height / 2);
+
+    let left = onLeft ? (svgRect.left - pad - tipRect.width) : (svgRect.right + pad);
+    const fitsOutside = left >= 8 && left + tipRect.width <= window.innerWidth - 8;
+    let top;
+    if (fitsOutside) {
+      top = anchorRect.top;
+    } else {
+      left = onLeft ? (svgRect.left + pad) : (svgRect.right - pad - tipRect.width);
+      top = onTop ? (svgRect.top + pad) : (svgRect.bottom - pad - tipRect.height);
+    }
+    left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - tipRect.height - 8));
+    const filterFloor = pinTipFilterFloor();
+    if (filterFloor != null) top = Math.max(top, filterFloor);
+    tipSelection.style("left", (left + window.scrollX) + "px").style("top", (top + window.scrollY) + "px");
+  }
+  const playerSearch = createPlayerSearchController({
+    universeKey: "combined", d3,
+    getEntries: () => tickRegistry,
+    placeTip,
+    routeHtml: (school, dep) => `${school} &mdash; ${depStatusHtml(dep)}`,
+    playerKey,
+    getPin: () => pin,
+    setPin: (next) => setPin(next),
+  });
 
   // ---- filters: chip UI + filtered-count helpers used by ribbon opacity --
   const allDeps = [];
@@ -2034,6 +2137,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     }
     restoreBaseDim();
     updatePinIndicator();
+    playerSearch.refresh();
   }
   function setPin(next) { pin = next; pinnedSegKey = null; redrawPin(); }
   function togglePin(candidate) {
@@ -2093,6 +2197,9 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     zoomIn: () => zoomCtl.zoomBy(1.5),
     zoomOut: () => zoomCtl.zoomBy(1 / 1.5),
     zoomReset: () => zoomCtl.reset(),
+    searchPlayers: playerSearch.searchPlayers,
+    selectResult: playerSearch.selectResult,
+    clearSearch: playerSearch.clearSearch,
   };
 }
 
@@ -2130,6 +2237,8 @@ function wireUniverseControls(key, handleRef) {
   });
   const pinClear = document.getElementById(`pinclear-${key}`);
   if (pinClear) pinClear.addEventListener("click", () => handleRef.current.clearPin());
+
+  wirePlayerSearchInput(key, handleRef);
 }
 
 function wireTabs() {

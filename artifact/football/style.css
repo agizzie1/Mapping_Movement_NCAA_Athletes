@@ -263,14 +263,17 @@
     margin: 0;
     color: var(--ink-2);
   }
-  /* Positioned + raised above #side-panel's z-index (60) so the direction
-     toggle, show-all checkbox, and zoom controls stay reachable when the
-     fixed side panel happens to overlap this row on screen -- otherwise a
-     later-painted fixed-position element always wins regardless of DOM
-     order, even though these controls are visually "in front" of it. */
+  /* Positioned + raised above #side-panel's z-index (60) AND above the
+     sibling .filter-bar row's z-index (61) so the direction toggle,
+     show-all checkbox, zoom controls, and player-search dropdown stay
+     reachable when the fixed side panel or the filter bar happens to
+     overlap this row on screen -- otherwise a later-painted element at
+     the same z-index always wins ties by DOM order regardless of visual
+     stacking, which silently ate clicks on the search dropdown's first
+     result (it's the row closest to .filter-bar underneath). */
   .panel-controls {
     position: relative;
-    z-index: 61;
+    z-index: 62;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -572,6 +575,130 @@
     box-shadow: 0 4px 18px rgba(0,0,0,0.22);
   }
   #tooltip strong { font-weight: 650; }
+
+  .player-search {
+    position: relative;
+  }
+  .player-search input {
+    width: 150px;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--ink-1);
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .player-search input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .player-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 55;
+    width: 260px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    padding: 4px;
+  }
+  .player-search-result {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--ink-1);
+    font: inherit;
+    font-size: 12.5px;
+    text-align: left;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .player-search-result:hover { background: var(--hairline); }
+  .psr-name { font-weight: 550; }
+  .psr-school { color: var(--ink-3); font-size: 11.5px; flex: none; }
+
+  .player-search-tip {
+    position: absolute;
+    display: none;
+    z-index: 49;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    max-width: 260px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .player-search-tip.ps-active {
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .player-search-tip .ps-close {
+    float: right;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--tooltip-ink);
+    opacity: 0.7;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 4px 8px;
+  }
+  .player-search-tip .ps-close:hover { opacity: 1; }
+  .player-search-tip .ps-name { font-weight: 650; font-size: 13.5px; }
+  .player-search-tip .ps-route { margin-top: 2px; }
+  .player-search-tip .ps-meta { color: var(--tooltip-ink); opacity: 0.75; margin-top: 2px; }
+  .player-search-tip .ps-toggle-prior {
+    display: block;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 8px 0 0;
+  }
+  .player-search-tip .ps-prior-list {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .player-search-tip .ps-prior-row {
+    padding-left: 10px;
+    border-left: 2px solid rgba(255,255,255,0.25);
+    font-size: 11.5px;
+  }
+  .player-search-tip .ps-prior-year { opacity: 0.7; }
+  .player-search-tip .ps-prior-count {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: 11.5px;
+    opacity: 0.75;
+  }
+  .player-search-tip .ps-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    opacity: 0.6;
+    font-style: italic;
+  }
 
   /* In normal document flow (JS moves this node into whichever panel's
      .filter-panel-row triggered it -- see positionSidePanel in viz.js)

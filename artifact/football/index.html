@@ -101,6 +101,10 @@
               <label><input type="radio" name="dir-fbs" value="in"> In</label>
             </div>
             <label class="toggle-label"><input type="checkbox" id="showall-fbs"> Show all transfers</label>
+            <div class="player-search">
+              <input type="text" id="playersearch-fbs" placeholder="Search player&hellip;" autocomplete="off" aria-label="Search player">
+              <div class="player-search-results" id="playersearch-results-fbs" hidden></div>
+            </div>
             <span class="pin-chip" id="pinchip-fbs"><span id="pinlabel-fbs"></span><button type="button" id="pinclear-fbs" title="Clear pin">&times;</button></span>
             <div class="zoom-controls">
               <button type="button" id="zoomin-fbs" title="Zoom in">+</button>
@@ -136,6 +140,10 @@
               <label><input type="radio" name="dir-fcs" value="in"> In</label>
             </div>
             <label class="toggle-label"><input type="checkbox" id="showall-fcs"> Show all transfers</label>
+            <div class="player-search">
+              <input type="text" id="playersearch-fcs" placeholder="Search player&hellip;" autocomplete="off" aria-label="Search player">
+              <div class="player-search-results" id="playersearch-results-fcs" hidden></div>
+            </div>
             <span class="pin-chip" id="pinchip-fcs"><span id="pinlabel-fcs"></span><button type="button" id="pinclear-fcs" title="Clear pin">&times;</button></span>
             <div class="zoom-controls">
               <button type="button" id="zoomin-fcs" title="Zoom in">+</button>
@@ -185,6 +193,10 @@
             <label><input type="radio" name="dir-combined" value="in"> In</label>
           </div>
           <label class="toggle-label"><input type="checkbox" id="showall-combined"> Show all transfers</label>
+            <div class="player-search">
+              <input type="text" id="playersearch-combined" placeholder="Search player&hellip;" autocomplete="off" aria-label="Search player">
+              <div class="player-search-results" id="playersearch-results-combined" hidden></div>
+            </div>
           <span class="pin-chip" id="pinchip-combined"><span id="pinlabel-combined"></span><button type="button" id="pinclear-combined" title="Clear pin">&times;</button></span>
           <div class="zoom-controls">
             <button type="button" id="zoomin-combined" title="Zoom in">+</button>
@@ -223,6 +235,9 @@
 </div>
 
 <div id="tooltip"></div>
+<div id="player-search-tip-fbs" class="player-search-tip"></div>
+<div id="player-search-tip-fcs" class="player-search-tip"></div>
+<div id="player-search-tip-combined" class="player-search-tip"></div>
 
 <div id="side-panel">
   <div id="side-panel-header">
@@ -234,6 +249,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="player-search.js"></script>
 <script src="viz.js"></script>
 </body>
 </html>
