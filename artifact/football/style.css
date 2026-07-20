@@ -700,6 +700,26 @@
     font-style: italic;
   }
 
+  /* Conference hover/pin stats box -- shares the same corner-placement
+     (placeTip) and filter-floor logic as .player-search-tip, but is purely
+     informational (no close button; dismissed by clicking the conference
+     label again), so pointer-events stays none like the plain #tooltip. */
+  .conf-pin-tip {
+    position: absolute;
+    display: none;
+    z-index: 49;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    max-width: 260px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .conf-pin-tip strong { font-weight: 650; }
+
   /* In normal document flow (JS moves this node into whichever panel's
      .filter-panel-row triggered it -- see positionSidePanel in viz.js)
      instead of position: fixed, so it can never float above the filters:

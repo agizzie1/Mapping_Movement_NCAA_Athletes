@@ -11,11 +11,18 @@ const PALETTES = {
     dark:  ["#b04363", "#609e3d", "#3b59b2", "#b24928", "#00a67b", "#6e48a5", "#a25b00", "#00a3af", "#8e3b84", "#7f7000", "#0097d4"],
   },
   fcs: {
-    conferences: ["CAA", "Missouri Valley", "Big Sky", "Southland", "SoCon", "Patriot League", "NEC", "Ivy League", "MEAC", "SWAC", "UAC", "OVC", "Pioneer League", "Big South"],
-    light: ["#c45a5e", "#55af68", "#5d64bb", "#c06232", "#00b392", "#7f58ae", "#b17000", "#00b0b9", "#984e95", "#977f00", "#00a8d7", "#a84874", "#728c1e", "#539ce8"],
-    dark:  ["#b3444a", "#3da257", "#4e54b0", "#b04d0f", "#00a684", "#7247a3", "#a15c00", "#00a3ad", "#8b3c88", "#876d00", "#009acd", "#9b3566", "#5f7b00", "#3c8edf"],
+    conferences: ["CAA", "Missouri Valley", "Big Sky", "Southland", "SoCon", "Patriot League", "NEC", "Ivy League", "MEAC", "SWAC", "UAC", "OVC-Big South", "Pioneer League"],
+    light: ["#c45a5e", "#55af68", "#5d64bb", "#c06232", "#00b392", "#7f58ae", "#b17000", "#00b0b9", "#984e95", "#977f00", "#00a8d7", "#a84874", "#728c1e"],
+    dark:  ["#b3444a", "#3da257", "#4e54b0", "#b04d0f", "#00a684", "#7247a3", "#a15c00", "#00a3ad", "#8b3c88", "#876d00", "#009acd", "#9b3566", "#5f7b00"],
   },
 };
+
+// Populated in boot() from CHORD_DATA.fbs.conferences / .fcs.conferences
+// (the authoritative, server-computed lists) rather than PALETTES.*
+// .conferences, so a future spelling drift between the two can't silently
+// misclassify a conference's level.
+const CONF_LEVEL = new Map();
+function levelOfConf(conf) { return CONF_LEVEL.get(conf) || "other"; }
 
 const SCHOOL_PAD = 0.0022;
 const CONF_PAD = 0.028;
@@ -155,6 +162,86 @@ function polar(angle, radius, offset) {
 }
 
 function midAngle(d) { return (d.startAngle + d.endAngle) / 2; }
+
+// Shared by the conference hover tooltip and the pinned corner box in all
+// three panels (renderUniverse's two instances and renderCombined), so the
+// numbers read identically everywhere. Splits a conference's own committed
+// movement into: Within (same conference, different school), Out/In to
+// another conference at the SAME level, Out/In across the FBS/FCS boundary,
+// and Out/In to a school outside both tracked levels entirely (D2/D3/NAIA,
+// international, etc.).
+//
+// `ownLevel` is derived from `conf` itself via levelOfConf rather than
+// passed in, since conference names are disjoint between FBS and FCS (a
+// combined-panel conference doesn't need to separately track which half
+// it's on for this).
+//
+// Within/same-level-other come from confSub/confSubIncoming (conference-pair
+// flow aggregates) -- these only ever contain same-level pairs for a solo
+// panel (flows there are intra-universe by construction), but DO contain
+// real cross-level pairs for the combined panel (whose flows include them),
+// so classifying each segment's target conference by level handles both
+// cases uniformly and outCrossLevel/inCrossLevel below only need to fall
+// back to a raw scan when the segments came back empty (solo panels).
+//
+// Out-to-another-division and In-from-another-division can't come from
+// confSub/confSubIncoming in ANY panel (those flows never include a
+// destination/origin outside FBS/FCS) -- Out comes from each school's own
+// (untracked-destination-inclusive) `departures` list; In comes from the
+// `crossArrivals` list build_chord_data.py adds per school specifically to
+// cover this direction, since a school's own records only ever show players
+// who LEFT it, never who arrived.
+//
+// Percentages are of this conference's OWN total movement (all seven
+// buckets), so they always sum to exactly 100 -- "in from another division"
+// absorbs the rounding remainder, matching the convention already used for
+// the basketball diagram's equivalent box.
+function confMovementStatsHtml({ conf, innerSpan, outSegments, inSegments }) {
+  const ownLevel = levelOfConf(conf);
+  const otherLevel = ownLevel === "fbs" ? "fcs" : "fbs";
+  const ownLevelLabel = ownLevel.toUpperCase();
+  const otherLevelLabel = otherLevel.toUpperCase();
+  const isRealDeparture = dep => dep.t !== "Still in Portal";
+
+  const withinTotal = d3.sum(outSegments.filter(s => s.target === conf), s => s.count);
+  const outCrossFromSegments = d3.sum(outSegments.filter(s => s.target !== conf && levelOfConf(s.target) !== ownLevel), s => s.count);
+  const outSameLevelOther = d3.sum(outSegments, s => s.count) - withinTotal - outCrossFromSegments;
+
+  const allDepartures = [];
+  for (const s of innerSpan.schools) for (const dep of s.departures || []) if (isRealDeparture(dep)) allDepartures.push(dep);
+  const outOtherDivision = allDepartures.filter(dep => levelOfConf(dep.tc) === "other").length;
+  const outCrossLevel = outCrossFromSegments || allDepartures.filter(dep => levelOfConf(dep.tc) === otherLevel).length;
+
+  const inWithinFromSegments = d3.sum(inSegments.filter(s => s.target === conf), s => s.count); // same events as withinTotal, counted from the other side
+  const inCrossFromSegments = d3.sum(inSegments.filter(s => s.target !== conf && levelOfConf(s.target) !== ownLevel), s => s.count);
+  const inSameLevelOther = d3.sum(inSegments, s => s.count) - inWithinFromSegments - inCrossFromSegments;
+
+  const allCrossArrivals = [];
+  for (const s of innerSpan.schools) for (const a of s.crossArrivals || []) allCrossArrivals.push(a);
+  const inOtherDivision = allCrossArrivals.filter(a => a.flevel === "other").length;
+  const inCrossLevel = inCrossFromSegments || allCrossArrivals.filter(a => a.flevel === otherLevel).length;
+
+  const total = withinTotal + outSameLevelOther + outCrossLevel + outOtherDivision
+    + inSameLevelOther + inCrossLevel + inOtherDivision;
+  const pct = n => total ? Math.round((n / total) * 100) : 0;
+  const pctWithin = pct(withinTotal);
+  const pctOutSameLevelOther = pct(outSameLevelOther);
+  const pctOutCrossLevel = pct(outCrossLevel);
+  const pctOutOtherDivision = pct(outOtherDivision);
+  const pctInSameLevelOther = pct(inSameLevelOther);
+  const pctInCrossLevel = pct(inCrossLevel);
+  const pctInOtherDivision = total ? 100 - pctWithin - pctOutSameLevelOther - pctOutCrossLevel - pctOutOtherDivision - pctInSameLevelOther - pctInCrossLevel : 0;
+
+  const outTotal = outSameLevelOther + outCrossLevel + outOtherDivision;
+  const inTotal = inSameLevelOther + inCrossLevel + inOtherDivision;
+  const pctOutTotal = pctOutSameLevelOther + pctOutCrossLevel + pctOutOtherDivision;
+  const pctInTotal = pctInSameLevelOther + pctInCrossLevel + pctInOtherDivision;
+
+  return `<strong>${conf}</strong><br>${innerSpan.schools.length} schools &middot; ${innerSpan.portalEntries} portal entries` +
+    `<br>Within: ${withinTotal} (${pctWithin}%)` +
+    `<br>Out: ${outTotal} (${pctOutTotal}%) &mdash; ${outSameLevelOther} to other ${ownLevelLabel} (${pctOutSameLevelOther}%), ${outCrossLevel} to ${otherLevelLabel} (${pctOutCrossLevel}%), ${outOtherDivision} to another division (${pctOutOtherDivision}%)` +
+    `<br>In: ${inTotal} (${pctInTotal}%) &mdash; ${inSameLevelOther} from other ${ownLevelLabel} (${pctInSameLevelOther}%), ${inCrossLevel} from ${otherLevelLabel} (${pctInCrossLevel}%), ${inOtherDivision} from another division (${pctInOtherDivision}%)`;
+}
 
 // ---------------------------------------------------------------------------
 // Build everything needed to render one universe (fbs or fcs).
@@ -734,6 +821,17 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     setPin: (next) => setPin(next),
   });
 
+  // Pinned conference stats box -- shares placeTip/pinTipFilterFloor with
+  // the player-search box above. Unlike that box, this one has no close
+  // button; clicking the same conference label again (via togglePin)
+  // releases it, matching how school/player pins already work.
+  const pinTooltip = d3.select(`#pin-tooltip-${universeKey}`);
+  function showPinTip(html, anchorRect) {
+    pinTooltip.style("display", "block").html(html);
+    placeTip(pinTooltip, anchorRect);
+  }
+  function hidePinTip() { pinTooltip.style("display", "none"); }
+
   // ---- filters: chip UI + filtered-count helpers used by ribbon opacity --
   const allDeps = [];
   for (const s of prepared.innerLayout) for (const dep of s.departures || []) allDeps.push({ school: s.school, dep, conf: s.conference });
@@ -947,9 +1045,12 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     })
     .on("mouseenter", (event, d) => {
       enterConference(d.conference);
-      const innerSpan = prepared.innerConfSpans.get(d.conference);
-      const outTotal = d3.sum(prepared.confSub.get(d.conference).segments, s => s.count);
-      showTip(`<strong>${d.conference}</strong><br>${d.schools.length} schools &middot; ${innerSpan.portalEntries} portal entries<br>${outTotal} transfers to other ${universeKey.toUpperCase()} conferences`, event);
+      showTip(confMovementStatsHtml({
+        conf: d.conference,
+        innerSpan: prepared.innerConfSpans.get(d.conference),
+        outSegments: prepared.confSub.get(d.conference).segments,
+        inSegments: prepared.confSubIncoming.get(d.conference).segments,
+      }), event);
     })
     .on("mousemove", (event) => moveTip(event))
     .on("mouseleave", () => leaveConference())
@@ -1331,15 +1432,34 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     if (p.type === "player") return `${p.dep.n} &mdash; ${p.school} &rarr; ${p.dep.t} (${p.dep.d})`;
     return p.key;
   }
-  function redrawPin() {
+  // `reposition` mirrors the player-search box's own redraw convention: only
+  // a freshly-set pin picks a new anchor/corner (via showPinTip), so
+  // panning/zooming or a filter-driven refresh (which call this with no
+  // args) just update the box's ribbons/content in place instead of
+  // yanking it to a new spot on every frame.
+  function redrawPin({ reposition = false } = {}) {
     gPinConfChords.selectAll("*").remove();
     gPinSchoolChords.selectAll("*").remove();
     gPinPlayerChords.selectAll("*").remove();
     root.selectAll(".pin-highlight").classed("pin-highlight", false);
+    if (reposition) hidePinTip();
     if (pin) {
       if (pin.type === "conference") {
         renderConferenceChords(gPinConfChords, pin.key, direction);
-        gConfLabels.selectAll("text.conf-label").filter(d => d.conference === pin.key).classed("pin-highlight", true);
+        const labelSel = gConfLabels.selectAll("text.conf-label").filter(d => d.conference === pin.key);
+        labelSel.classed("pin-highlight", true);
+        const statsHtml = () => confMovementStatsHtml({
+          conf: pin.key,
+          innerSpan: prepared.innerConfSpans.get(pin.key),
+          outSegments: prepared.confSub.get(pin.key).segments,
+          inSegments: prepared.confSubIncoming.get(pin.key).segments,
+        });
+        if (reposition) {
+          const labelNode = labelSel.node();
+          if (labelNode) showPinTip(statsHtml(), labelNode.getBoundingClientRect());
+        } else {
+          pinTooltip.html(statsHtml());
+        }
       } else if (pin.type === "school") {
         renderSchoolChords(gPinSchoolChords, pin.key, direction);
         root.selectAll(`.outer-school[data-school="${cssEscape(pin.key)}"], .inner-school[data-school="${cssEscape(pin.key)}"]`).classed("pin-highlight", true);
@@ -1352,7 +1472,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     updatePinIndicator();
     playerSearch.refresh();
   }
-  function setPin(next) { pin = next; pinnedSegKey = null; redrawPin(); }
+  function setPin(next) { pin = next; pinnedSegKey = null; redrawPin({ reposition: true }); }
   function togglePin(candidate) {
     if (pin && pin.type === candidate.type && pin.key === candidate.key) setPin(null);
     else setPin(candidate);
@@ -1394,6 +1514,25 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     if (pin) redrawPin();
     if (lastPanelRefresh) lastPanelRefresh();
   });
+
+  // Opening/closing the filters panel is a deliberate click, not a pan/zoom
+  // frame, so -- unlike those -- it's worth nudging a pinned conference's
+  // box out from under the panel rather than leaving it stuck in place.
+  const filterPanelEl = document.getElementById(`filterpanel-${universeKey}`);
+  if (filterPanelEl) {
+    new MutationObserver(() => {
+      if (!pin || pin.type !== "conference") return;
+      const labelNode = gConfLabels.selectAll("text.conf-label").filter(d => d.conference === pin.key).node();
+      if (labelNode) {
+        showPinTip(confMovementStatsHtml({
+          conf: pin.key,
+          innerSpan: prepared.innerConfSpans.get(pin.key),
+          outSegments: prepared.confSub.get(pin.key).segments,
+          inSegments: prepared.confSubIncoming.get(pin.key).segments,
+        }), labelNode.getBoundingClientRect());
+      }
+    }).observe(filterPanelEl, { attributes: true, attributeFilter: ["hidden"] });
+  }
 
   svg.on("click", (event) => {
     if (zoomCtl.wasPanned()) return;
@@ -1557,6 +1696,22 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     getPin: () => pin,
     setPin: (next) => setPin(next),
   });
+
+  // See the matching block in renderUniverse.
+  const pinTooltip = d3.select("#pin-tooltip-combined");
+  function showPinTip(html, anchorRect) {
+    pinTooltip.style("display", "block").html(html);
+    placeTip(pinTooltip, anchorRect);
+  }
+  function hidePinTip() { pinTooltip.style("display", "none"); }
+  function confStatsFor(conf) {
+    return confMovementStatsHtml({
+      conf,
+      innerSpan: prepared.innerConfSpans.get(conf),
+      outSegments: prepared.confSub.get(conf).segments,
+      inSegments: prepared.confSubIncoming.get(conf).segments,
+    });
+  }
 
   // ---- filters: chip UI + filtered-count helpers used by ribbon opacity --
   const allDeps = [];
@@ -1771,9 +1926,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
       })
       .on("mouseenter", (event, d) => {
         enterConference(d.conference);
-        const innerSpan = prepared.innerConfSpans.get(d.conference);
-        const outTotal = d3.sum(prepared.confSub.get(d.conference).segments, s => s.count);
-        showTip(`<strong>${d.conference}</strong><br>${d.schools.length} schools &middot; ${innerSpan.portalEntries} portal entries<br>${outTotal} transfers to other conferences`, event);
+        showTip(confStatsFor(d.conference), event);
       })
       .on("mousemove", (event) => moveTip(event))
       .on("mouseleave", () => leaveConference())
@@ -2114,7 +2267,8 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     if (p.type === "player") return `${p.dep.n} &mdash; ${p.school} &rarr; ${p.dep.t} (${p.dep.d})`;
     return p.key;
   }
-  function redrawPin() {
+  // See the matching function in renderUniverse.
+  function redrawPin({ reposition = false } = {}) {
     pinConfSame.fbs.selectAll("*").remove();
     pinConfSame.fcs.selectAll("*").remove();
     pinSchoolSame.fbs.selectAll("*").remove();
@@ -2123,10 +2277,18 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     pinPlayerSame.fcs.selectAll("*").remove();
     gPinCrossChords.selectAll("*").remove();
     root.selectAll(".pin-highlight").classed("pin-highlight", false);
+    if (reposition) hidePinTip();
     if (pin) {
       if (pin.type === "conference") {
         renderConferenceChords(pinConfSame, gPinCrossChords, pin.key, direction);
-        root.selectAll("text.conf-label").filter(d => d.conference === pin.key).classed("pin-highlight", true);
+        const labelSel = root.selectAll("text.conf-label").filter(d => d.conference === pin.key);
+        labelSel.classed("pin-highlight", true);
+        if (reposition) {
+          const labelNode = labelSel.node();
+          if (labelNode) showPinTip(confStatsFor(pin.key), labelNode.getBoundingClientRect());
+        } else {
+          pinTooltip.html(confStatsFor(pin.key));
+        }
       } else if (pin.type === "school") {
         renderSchoolChords(pinSchoolSame, gPinCrossChords, pin.key, direction);
         root.selectAll(`.outer-school[data-school="${cssEscape(pin.key)}"], .inner-school[data-school="${cssEscape(pin.key)}"]`).classed("pin-highlight", true);
@@ -2139,7 +2301,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     updatePinIndicator();
     playerSearch.refresh();
   }
-  function setPin(next) { pin = next; pinnedSegKey = null; redrawPin(); }
+  function setPin(next) { pin = next; pinnedSegKey = null; redrawPin({ reposition: true }); }
   function togglePin(candidate) {
     if (pin && pin.type === candidate.type && pin.key === candidate.key) setPin(null);
     else setPin(candidate);
@@ -2173,6 +2335,16 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     if (pin) redrawPin();
     if (lastPanelRefresh) lastPanelRefresh();
   });
+
+  // See the matching block in renderUniverse.
+  const filterPanelEl = document.getElementById("filterpanel-combined");
+  if (filterPanelEl) {
+    new MutationObserver(() => {
+      if (!pin || pin.type !== "conference") return;
+      const labelNode = root.selectAll("text.conf-label").filter(d => d.conference === pin.key).node();
+      if (labelNode) showPinTip(confStatsFor(pin.key), labelNode.getBoundingClientRect());
+    }).observe(filterPanelEl, { attributes: true, attributeFilter: ["hidden"] });
+  }
 
   svg.on("click", (event) => {
     if (zoomCtl.wasPanned()) return;
@@ -2261,6 +2433,9 @@ function boot(CHORD_DATA) {
     innerOuter: 260, innerInner: 222,
     chordRadius: 222, offset: 420,
   };
+
+  for (const c of CHORD_DATA.fbs.conferences) CONF_LEVEL.set(c, "fbs");
+  for (const c of CHORD_DATA.fcs.conferences) CONF_LEVEL.set(c, "fcs");
 
   const fbsPrepared = prepareUniverse(CHORD_DATA.fbs, PALETTES.fbs.conferences);
   const fcsPrepared = prepareUniverse(CHORD_DATA.fcs, PALETTES.fcs.conferences);
