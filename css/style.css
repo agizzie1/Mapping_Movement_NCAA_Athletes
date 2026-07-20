@@ -143,6 +143,14 @@ h2.section-heading {
   max-width: 62ch;
 }
 
+h3.context-heading {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+}
+
 /* ---------- Contact button + card ---------- */
 
 .contact-button {
