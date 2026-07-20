@@ -876,7 +876,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             event.stopPropagation();
             togglePlayerPin(d.school, dep, a0, a1);
           });
-        tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school });
+        tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school, a0, a1 });
       });
     });
 
@@ -915,7 +915,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             event.stopPropagation();
             togglePlayerPin(d.school, dep, a0, a1);
           });
-        tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school });
+        tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school, a0, a1 });
       });
     }
   });
@@ -1704,7 +1704,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
               event.stopPropagation();
               togglePlayerPin(d.school, dep, a0, a1);
             });
-          tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school });
+          tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school, a0, a1 });
         });
       });
       if (sub.leftoverEnd > sub.leftoverStart) {
@@ -1742,7 +1742,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
               event.stopPropagation();
               togglePlayerPin(d.school, dep, a0, a1);
             });
-          tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school });
+          tickRegistry.push({ el: tickSel.node(), dep, conf: d.conference, school: d.school, a0, a1 });
         });
       }
     });
