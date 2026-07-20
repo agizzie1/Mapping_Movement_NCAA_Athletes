@@ -151,6 +151,50 @@ h3.context-heading {
   margin: 0 0 12px;
 }
 
+.context-wrap {
+  position: relative;
+  max-height: 130px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, mask-image 0.35s ease, -webkit-mask-image 0.35s ease;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 95%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 95%);
+}
+
+.context-wrap.expanded {
+  max-height: 2000px;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.context-extra {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.context-wrap.expanded .context-extra {
+  opacity: 1;
+}
+
+.context-toggle {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 0 0 2px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.context-toggle:hover,
+.context-toggle:focus-visible {
+  opacity: 0.8;
+}
+
 /* ---------- Contact button + card ---------- */
 
 .contact-button {
