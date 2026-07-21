@@ -39,14 +39,20 @@
 //     for a stable per-player-event key.
 // ---------------------------------------------------------------------------
 
-function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, routeHtml, playerKey, getPin, setPin }) {
+function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, routeHtml, playerKey, getPin, setPin, onPriorToggle, onHopSelect }) {
   const tip = d3.select(`#player-search-tip-${universeKey}`);
   let searchedPlayer = null; // one entry from getEntries(), or null
   let priorExpanded = false;
+  let selectedHopNum = null; // 1-based, matches each ribbon's own hop number
 
+  // Each row is numbered 1..N, oldest first -- matching the "Prior Transfer
+  // N" ordinal already used for these columns/fields everywhere else, and
+  // the same number the corresponding diagram ribbon carries (see viz.js's
+  // renderPriorHopChords) so a click on either one can point at the other.
   function priorRowsHtml(entry) {
     const pt = entry.dep.pt;
     return pt.map((stop, i) => {
+      const num = i + 1;
       // "f" (explicit From school) is football-only, fixed 2026-07-21: each
       // stop is now a real transfer EVENT (From -> To), so "f" is always a
       // real prior school, never blank -- a player's true first school
@@ -60,7 +66,8 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
       // snapshot -- basketball's stops, and any football stop with no
       // match, just fall back to year-only, same as before grades existed.
       const yearText = stop.g ? `${stop.g} &middot; ${stop.y || "Unknown"}` : (stop.y || "Unknown");
-      return `<div class="ps-prior-row"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${yearText}</div></div>`;
+      const selected = selectedHopNum === num ? " ps-prior-row-selected" : "";
+      return `<div class="ps-prior-row${selected}" data-hop-num="${num}"><span class="ps-prior-num">${num}</span><div class="ps-prior-text"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${yearText}</div></div></div>`;
     }).join("");
   }
 
@@ -110,6 +117,7 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
   function clearSearch() {
     searchedPlayer = null;
     priorExpanded = false;
+    selectedHopNum = null;
     tip.style("display", "none");
   }
   function toggleHighlight() {
@@ -120,13 +128,56 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
     else setPin({ type: "player", key, school: searchedPlayer.school, dep: searchedPlayer.dep, tickStart: searchedPlayer.a0, tickEnd: searchedPlayer.a1 });
     refresh();
   }
+  // The same button both expands the text list AND (via onPriorToggle, only
+  // wired up by the combined view -- see its renderPriorHopChords) draws the
+  // rest of the player's transfer-history ribbons on the diagram. Only when
+  // onPriorToggle exists does expanding also pin the player if they weren't
+  // already -- otherwise there'd be no ribbon layer for the extra history
+  // to attach to; a solo FBS/FCS panel has no such callback (see the design
+  // note on why the multi-hop ribbons are combined-only), so there this
+  // button keeps its old text-only behavior, with no side effect on
+  // pinning/highlighting. Collapsing leaves the pin as-is either way (a
+  // still-pinned player just loses the extra ribbons, not their primary
+  // one).
+  function togglePriorTransfers() {
+    if (!searchedPlayer) return;
+    priorExpanded = !priorExpanded;
+    if (priorExpanded && onPriorToggle) {
+      const key = playerKey(searchedPlayer.school, searchedPlayer.dep);
+      const pin = getPin();
+      if (!(pin && pin.type === "player" && pin.key === key)) {
+        setPin({ type: "player", key, school: searchedPlayer.school, dep: searchedPlayer.dep, tickStart: searchedPlayer.a0, tickEnd: searchedPlayer.a1 });
+      }
+    } else if (!priorExpanded) {
+      selectedHopNum = null;
+    }
+    if (onPriorToggle) onPriorToggle(priorExpanded);
+    refresh();
+  }
+  // Row <-> ribbon selection is bidirectional: a row click calls into
+  // viz.js (onHopSelect) to highlight/dim the matching ribbon, while a
+  // ribbon click calls back in here via the returned selectHop() to
+  // highlight the matching row -- selectHop only updates local state and
+  // re-renders, it never re-invokes onHopSelect, so the two directions
+  // don't loop.
+  function selectRowHop(num) {
+    selectedHopNum = selectedHopNum === num ? null : num;
+    if (onHopSelect) onHopSelect(selectedHopNum);
+    refresh();
+  }
+  function selectHop(num) {
+    selectedHopNum = num;
+    refresh();
+  }
   // d3's selection.on(typename, listener) replaces any prior listener of
   // the same typename on this element, so re-running this once per render
   // (createPlayerSearchController is called fresh each renderUniverse pass)
   // doesn't stack up duplicate handlers.
   tip.on("click", (event) => {
     if (event.target.closest(".ps-close")) { clearSearch(); return; }
-    if (event.target.closest(".ps-toggle-prior")) { priorExpanded = !priorExpanded; refresh(); return; }
+    if (event.target.closest(".ps-toggle-prior")) { togglePriorTransfers(); return; }
+    const row = event.target.closest(".ps-prior-row");
+    if (row) { selectRowHop(Number(row.dataset.hopNum)); return; }
     toggleHighlight();
   });
 
@@ -145,7 +196,7 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
     return [...starts.sort(byName), ...contains.sort(byName)].slice(0, 20);
   }
 
-  return { searchPlayers, selectResult, clearSearch, refresh };
+  return { searchPlayers, selectResult, clearSearch, refresh, selectHop };
 }
 
 // Wires the toolbar <input> + results dropdown ONCE (at boot), delegating
