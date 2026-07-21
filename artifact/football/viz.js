@@ -448,8 +448,17 @@ function depStatusHtml(dep) {
     ? "still in the transfer portal"
     : `transferred to ${dep.t}${dep.tc && dep.tc !== "Unknown" ? " (" + dep.tc + ")" : ""}`;
 }
+// `dep.pt` became a full array of prior-transfer events (see
+// build_chord_data.py's build_prior_transfers) rather than a bare count on
+// 2026-07-20 -- this reads its length wherever a plain number is needed
+// (tooltip text, the "Prior transfers" filter dimension below), so those
+// stay correct instead of stringifying/NaN-ing on the array itself.
+function ptCount(dep) {
+  return Array.isArray(dep.pt) ? dep.pt.length : (dep.pt ?? null);
+}
 function playerMetaHtml(dep) {
-  const pt = dep.pt === null || dep.pt === undefined ? "unknown prior transfers" : `${dep.pt} prior transfer${dep.pt === 1 ? "" : "s"}`;
+  const n = ptCount(dep);
+  const pt = n === null ? "unknown prior transfers" : `${n} prior transfer${n === 1 ? "" : "s"}`;
   return `${dep.pos} &middot; ${dep.gr} &middot; ${pt}`;
 }
 function playerKey(school, dep) { return school + " " + dep.n + " " + dep.d; }
@@ -515,6 +524,10 @@ function matchesFilters(dep, filters, home) {
       if (filters.school.size && !filters.school.has(home.school)) return false;
       continue;
     }
+    if (dim === "pt") {
+      if (filters.pt.size && !filters.pt.has(ptCount(dep))) return false;
+      continue;
+    }
     const set = filters[dim];
     if (set.size && !set.has(dep[dim])) return false;
   }
@@ -571,6 +584,7 @@ function buildFilterBar(key, allDeps, conferenceOrder) {
     container.innerHTML = "";
     const raw = dim === "conf" ? allDeps.map(r => r.conf)
       : dim === "school" ? allDeps.map(r => r.school)
+      : dim === "pt" ? allDeps.map(r => ptCount(r.dep))
       : allDeps.map(r => r.dep[dim]);
     const values = sortFilterValues(dim, new Set(raw), conferenceOrder);
     for (const v of values) {
@@ -771,12 +785,15 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   function hideTip() { tooltip.style("display", "none"); }
 
   // ---- player search box positioning ---------------------------------
-  // Ported from the basketball diagram (which also has a conference
-  // pin-tooltip using this same corner logic; this diagram doesn't have
-  // that box, but the player-search box needs the same placement math).
-  // Prefers sitting fully outside the diagram's left/right edge, falling
-  // back to that side's corner of the SVG's own square canvas when the
-  // viewport's too narrow, and never sits on top of the Filters panel.
+  // Always the diagram's own top-left corner (not anchored to whatever
+  // player was searched) -- see basketball's viz.js for the fuller
+  // explanation. The stacking-avoidance loop below (querying .conf-pin-tip
+  // and .player-search-tip) is what keeps this box from landing right on
+  // top of the conference pin-tooltip box below when both are pinned/
+  // searched at once -- the two must use matching selectors here, since
+  // this diagram's conference box uses a per-universe id
+  // (#pin-tooltip-${universeKey}), not the single #pin-tooltip id
+  // basketball's single-universe diagram gets away with.
   function pinTipFilterFloor() {
     const pad = 10;
     const panel = document.getElementById(`filterpanel-${universeKey}`);
@@ -793,22 +810,20 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     const pad = 14;
     const svgRect = svgEl.getBoundingClientRect();
     const tipRect = tipSelection.node().getBoundingClientRect();
-    const onLeft = (anchorRect.left + anchorRect.width / 2) < (svgRect.left + svgRect.width / 2);
-    const onTop = (anchorRect.top + anchorRect.height / 2) < (svgRect.top + svgRect.height / 2);
 
-    let left = onLeft ? (svgRect.left - pad - tipRect.width) : (svgRect.right + pad);
-    const fitsOutside = left >= 8 && left + tipRect.width <= window.innerWidth - 8;
-    let top;
-    if (fitsOutside) {
-      top = anchorRect.top;
-    } else {
-      left = onLeft ? (svgRect.left + pad) : (svgRect.right - pad - tipRect.width);
-      top = onTop ? (svgRect.top + pad) : (svgRect.bottom - pad - tipRect.height);
-    }
+    let left = svgRect.left + pad;
+    let top = svgRect.top + pad;
     left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
     top = Math.max(8, Math.min(top, window.innerHeight - tipRect.height - 8));
     const filterFloor = pinTipFilterFloor();
     if (filterFloor != null) top = Math.max(top, filterFloor);
+    for (const other of document.querySelectorAll(".conf-pin-tip, .player-search-tip")) {
+      if (other === tipSelection.node() || getComputedStyle(other).display === "none") continue;
+      const rect = other.getBoundingClientRect();
+      const overlapsHorizontally = left < rect.right && left + tipRect.width > rect.left;
+      if (overlapsHorizontally) top = Math.max(top, rect.bottom + pad);
+    }
+    top = Math.max(8, top);
     tipSelection.style("left", (left + window.scrollX) + "px").style("top", (top + window.scrollY) + "px");
   }
   const playerSearch = createPlayerSearchController({
@@ -1669,22 +1684,20 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     const pad = 14;
     const svgRect = svgEl.getBoundingClientRect();
     const tipRect = tipSelection.node().getBoundingClientRect();
-    const onLeft = (anchorRect.left + anchorRect.width / 2) < (svgRect.left + svgRect.width / 2);
-    const onTop = (anchorRect.top + anchorRect.height / 2) < (svgRect.top + svgRect.height / 2);
 
-    let left = onLeft ? (svgRect.left - pad - tipRect.width) : (svgRect.right + pad);
-    const fitsOutside = left >= 8 && left + tipRect.width <= window.innerWidth - 8;
-    let top;
-    if (fitsOutside) {
-      top = anchorRect.top;
-    } else {
-      left = onLeft ? (svgRect.left + pad) : (svgRect.right - pad - tipRect.width);
-      top = onTop ? (svgRect.top + pad) : (svgRect.bottom - pad - tipRect.height);
-    }
+    let left = svgRect.left + pad;
+    let top = svgRect.top + pad;
     left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
     top = Math.max(8, Math.min(top, window.innerHeight - tipRect.height - 8));
     const filterFloor = pinTipFilterFloor();
     if (filterFloor != null) top = Math.max(top, filterFloor);
+    for (const other of document.querySelectorAll(".conf-pin-tip, .player-search-tip")) {
+      if (other === tipSelection.node() || getComputedStyle(other).display === "none") continue;
+      const rect = other.getBoundingClientRect();
+      const overlapsHorizontally = left < rect.right && left + tipRect.width > rect.left;
+      if (overlapsHorizontally) top = Math.max(top, rect.bottom + pad);
+    }
+    top = Math.max(8, top);
     tipSelection.style("left", (left + window.scrollX) + "px").style("top", (top + window.scrollY) + "px");
   }
   const playerSearch = createPlayerSearchController({
@@ -2413,12 +2426,20 @@ function wireUniverseControls(key, handleRef) {
   wirePlayerSearchInput(key, handleRef);
 }
 
-function wireTabs() {
+function wireTabs(handleRefs) {
   const buttons = Array.from(document.querySelectorAll(".tab-btn"));
   buttons.forEach(btn => btn.addEventListener("click", () => {
     buttons.forEach(b => b.classList.toggle("active", b === btn));
-    document.getElementById("view-separate").style.display = btn.dataset.view === "separate" ? "" : "none";
-    document.getElementById("view-combined").style.display = btn.dataset.view === "combined" ? "" : "none";
+    const showingSeparate = btn.dataset.view === "separate";
+    document.getElementById("view-separate").style.display = showingSeparate ? "" : "none";
+    document.getElementById("view-combined").style.display = showingSeparate ? "none" : "";
+    // The player-search box lives outside #view-separate/#view-combined
+    // (so it can float freely), so hiding a view doesn't hide its box --
+    // left open, it would keep floating at its last position indefinitely,
+    // often right on top of whichever view is now showing. Close it along
+    // with its view.
+    const toClear = showingSeparate ? [handleRefs.combined] : [handleRefs.fbs, handleRefs.fcs];
+    for (const ref of toClear) if (ref.current) ref.current.clearSearch();
   }));
 }
 
@@ -2465,7 +2486,7 @@ function boot(CHORD_DATA) {
   wireUniverseControls("fbs", fbsHandleRef);
   wireUniverseControls("fcs", fcsHandleRef);
   wireUniverseControls("combined", combinedHandleRef);
-  wireTabs();
+  wireTabs({ fbs: fbsHandleRef, fcs: fcsHandleRef, combined: combinedHandleRef });
   document.getElementById("side-panel-close").addEventListener("click", hideSidePanel);
 
   const observer = new MutationObserver(renderAll);

@@ -47,11 +47,18 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
   function priorRowsHtml(entry) {
     const pt = entry.dep.pt;
     return pt.map((stop, i) => {
-      const from = i === 0 ? "&mdash;" : pt[i - 1].s;
+      // "f" (explicit From school) is football-only, fixed 2026-07-21: each
+      // stop is now a real transfer EVENT (From -> To), so "f" is always a
+      // real prior school, never blank -- a player's true first school
+      // (arrived out of high school, not via transfer) is never itself a
+      // "To" entry in football's data anymore. Basketball's stops have no
+      // "f" at all (still an implicit school-only chain), so this falls
+      // back to that older dash-prefixed chain behavior for them.
+      const from = stop.f || (i === 0 ? "&mdash;" : pt[i - 1].s);
       // "g" (grade at that prior school) is football-only and only present
       // when merge_prior_transfer_grades.py found a matching historical
-      // snapshot -- basketball's stops, and the ~20% of football stops with
-      // no match, just fall back to year-only, same as before grades existed.
+      // snapshot -- basketball's stops, and any football stop with no
+      // match, just fall back to year-only, same as before grades existed.
       const yearText = stop.g ? `${stop.g} &middot; ${stop.y || "Unknown"}` : (stop.y || "Unknown");
       return `<div class="ps-prior-row"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${yearText}</div></div>`;
     }).join("");
