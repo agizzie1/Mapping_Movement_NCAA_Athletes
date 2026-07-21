@@ -719,6 +719,24 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   function openPlayerPanel(school, dep) {
     showSidePanel(dep.n, [{ name: `${school} &mdash; ${depStatusHtml(dep)}`, detail: `${dep.d}<br>${playerMetaHtml(dep)}` }]);
   }
+  // Rows in a FILTERED side-panel list (built from a school/conference-pair
+  // segment click, "show all", etc.) previously only had an onClick when
+  // the filtered set happened to narrow to exactly one player, and even
+  // then it just isolated/dimmed that one ribbon -- not the richer info box
+  // a player-search result opens. This makes every such row open that same
+  // player-search-tip box (name, route, meta, expandable prior-transfer
+  // history, "click to highlight ribbon" hint) regardless of how many rows
+  // are in the list, by finding that exact player's own tick entry (every
+  // departure -- including "leftover"/still-in-portal ones -- always has
+  // one, pushed once per render pass; see the tickRegistry.push() call
+  // sites) and feeding it through the same selectResult() the search
+  // dropdown itself uses, so the two paths are indistinguishable once the
+  // box is open.
+  function openPlayerInfoTip(school, dep) {
+    const key = playerKey(school, dep);
+    const entry = tickRegistry.find(e => playerKey(e.school, e.dep) === key);
+    if (entry) playerSearch.selectResult(entry);
+  }
 
   let zoomDetail = false;
   // FBS packs roughly 5x as many portal entries into a similarly-sized
@@ -988,7 +1006,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             const matched = filtersActive(filters) ? deps.filter(dep => matchesFilters(dep, filters, { conf: d.conference, school: d.school })) : deps;
             const rows = matched.map(dep => ({
               name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-              onClick: matched.length === 1 ? (selected) => (selected ? isolateRibbon(segKey) : clearRibbonIsolation()) : undefined,
+              onClick: () => openPlayerInfoTip(d.school, dep),
             }));
             showSidePanel(`${d.school} &rarr; ${seg.target}`, rows);
           });
@@ -1025,7 +1043,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
           event.stopPropagation();
           openSegmentPanel(() => {
             const list = filtersActive(filters) ? players.leftover.filter(dep => matchesFilters(dep, filters, { conf: d.conference, school: d.school })) : players.leftover;
-            const rows = list.map(dep => ({ name: dep.n, detail: `${depStatusHtml(dep)} &middot; ${dep.d}<br>${playerMetaHtml(dep)}` }));
+            const rows = list.map(dep => ({
+              name: dep.n, detail: `${depStatusHtml(dep)} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(d.school, dep),
+            }));
             showSidePanel(`${d.school} &mdash; still in portal / left ${universeKey.toUpperCase()}`, rows);
           });
         });
@@ -1153,6 +1174,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             const fresh = filteredConfDeps(conf, seg.target);
             const rows = fresh.map(({ school, dep }) => ({
               name: dep.n, detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(school, dep),
             }));
             showSidePanel(pairLabel(fresh, conf, seg.target), rows);
           });
@@ -1182,6 +1204,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             const fresh = filteredConfDeps(otherConf, conf);
             const rows = fresh.map(({ school, dep }) => ({
               name: dep.n, detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(school, dep),
             }));
             showSidePanel(pairLabel(fresh, otherConf, conf), rows);
           });
@@ -1221,10 +1244,9 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             event.stopPropagation();
             openSegmentPanel(() => {
               const deps = filteredSchoolDeps(school, seg.target);
-              const pairKey = `${school}::${seg.target}`;
               const rows = deps.map(dep => ({
                 name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-                onClick: deps.length === 1 ? (selected) => (selected ? isolateRibbon(pairKey) : clearRibbonIsolation()) : undefined,
+                onClick: () => openPlayerInfoTip(school, dep),
               }));
               showSidePanel(`${school} &rarr; ${seg.target}`, rows);
             });
@@ -1260,10 +1282,9 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             event.stopPropagation();
             openSegmentPanel(() => {
               const deps = filteredSchoolDeps(f.source, school);
-              const pairKey = `${f.source}::${school}`;
               const rows = deps.map(dep => ({
                 name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-                onClick: deps.length === 1 ? (selected) => (selected ? isolateRibbon(pairKey) : clearRibbonIsolation()) : undefined,
+                onClick: () => openPlayerInfoTip(f.source, dep),
               }));
               showSidePanel(`${f.source} &rarr; ${school}`, rows);
             });
@@ -1455,6 +1476,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
             const rows = fresh.map(({ school, dep }) => ({
               name: dep.n,
               detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(school, dep),
             }));
             showSidePanel(pairLabel(fresh, conf, seg.target), rows);
           });
@@ -1745,6 +1767,12 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
   function openPlayerPanel(school, dep) {
     showSidePanel(dep.n, [{ name: `${school} &mdash; ${depStatusHtml(dep)}`, detail: `${dep.d}<br>${playerMetaHtml(dep)}` }]);
   }
+  // See the matching function/comment in renderUniverse.
+  function openPlayerInfoTip(school, dep) {
+    const key = playerKey(school, dep);
+    const entry = tickRegistry.find(e => playerKey(e.school, e.dep) === key);
+    if (entry) playerSearch.selectResult(entry);
+  }
 
   let zoomDetail = false;
   // Both halves share one pan/zoom transform, so the ceiling has to
@@ -2000,7 +2028,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
               const matched = filtersActive(filters) ? deps.filter(dep => matchesFilters(dep, filters, { conf: d.conference, school: d.school })) : deps;
               const rows = matched.map(dep => ({
                 name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-                onClick: matched.length === 1 ? (selected) => (selected ? isolateRibbon(segKey) : clearRibbonIsolation()) : undefined,
+                onClick: () => openPlayerInfoTip(d.school, dep),
               }));
               showSidePanel(`${d.school} &rarr; ${seg.target}`, rows);
             });
@@ -2036,7 +2064,10 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             event.stopPropagation();
             openSegmentPanel(() => {
               const list = filtersActive(filters) ? players.leftover.filter(dep => matchesFilters(dep, filters, { conf: d.conference, school: d.school })) : players.leftover;
-              const rows = list.map(dep => ({ name: dep.n, detail: `${depStatusHtml(dep)} &middot; ${dep.d}<br>${playerMetaHtml(dep)}` }));
+              const rows = list.map(dep => ({
+                name: dep.n, detail: `${depStatusHtml(dep)} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+                onClick: () => openPlayerInfoTip(d.school, dep),
+              }));
               showSidePanel(`${d.school} &mdash; still in portal / left FBS+FCS entirely`, rows);
             });
           });
@@ -2180,6 +2211,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             const fresh = filteredConfDeps(conf, seg.target);
             const rows = fresh.map(({ school, dep }) => ({
               name: dep.n, detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(school, dep),
             }));
             showSidePanel(pairLabel(fresh, conf, seg.target), rows);
           }),
@@ -2198,6 +2230,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             const fresh = filteredConfDeps(otherConf, conf);
             const rows = fresh.map(({ school, dep }) => ({
               name: dep.n, detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+              onClick: () => openPlayerInfoTip(school, dep),
             }));
             showSidePanel(pairLabel(fresh, otherConf, conf), rows);
           }),
@@ -2227,10 +2260,9 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             pairKey: `${school}::${seg.target}`,
             onClick: () => openSegmentPanel(() => {
               const deps = filteredSchoolDeps(school, seg.target);
-              const pairKey = `${school}::${seg.target}`;
               const rows = deps.map(dep => ({
                 name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-                onClick: deps.length === 1 ? (selected) => (selected ? isolateRibbon(pairKey) : clearRibbonIsolation()) : undefined,
+                onClick: () => openPlayerInfoTip(school, dep),
               }));
               showSidePanel(`${school} &rarr; ${seg.target}`, rows);
             }),
@@ -2255,10 +2287,9 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             pairKey: `${f.source}::${school}`,
             onClick: () => openSegmentPanel(() => {
               const deps = filteredSchoolDeps(f.source, school);
-              const pairKey = `${f.source}::${school}`;
               const rows = deps.map(dep => ({
                 name: dep.n, detail: `${dep.d}<br>${playerMetaHtml(dep)}`,
-                onClick: deps.length === 1 ? (selected) => (selected ? isolateRibbon(pairKey) : clearRibbonIsolation()) : undefined,
+                onClick: () => openPlayerInfoTip(f.source, dep),
               }));
               showSidePanel(`${f.source} &rarr; ${school}`, rows);
             }),
@@ -2468,6 +2499,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
               const rows = fresh.map(({ school, dep }) => ({
                 name: dep.n,
                 detail: `${school} &rarr; ${dep.t} &middot; ${dep.d}<br>${playerMetaHtml(dep)}`,
+                onClick: () => openPlayerInfoTip(school, dep),
               }));
               showSidePanel(pairLabel(fresh, conf, seg.target), rows);
             });
