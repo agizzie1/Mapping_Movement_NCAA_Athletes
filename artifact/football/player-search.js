@@ -48,7 +48,12 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
     const pt = entry.dep.pt;
     return pt.map((stop, i) => {
       const from = i === 0 ? "&mdash;" : pt[i - 1].s;
-      return `<div class="ps-prior-row"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${stop.y || "Unknown"}</div></div>`;
+      // "g" (grade at that prior school) is football-only and only present
+      // when merge_prior_transfer_grades.py found a matching historical
+      // snapshot -- basketball's stops, and the ~20% of football stops with
+      // no match, just fall back to year-only, same as before grades existed.
+      const yearText = stop.g ? `${stop.g} &middot; ${stop.y || "Unknown"}` : (stop.y || "Unknown");
+      return `<div class="ps-prior-row"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${yearText}</div></div>`;
     }).join("");
   }
 
