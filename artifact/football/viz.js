@@ -654,6 +654,18 @@ function positionSidePanel(rowEl) {
     rowEl.appendChild(panel);
   }
 }
+// A pinned conference-stats box or player-search-tip box (both absolutely
+// positioned via each render function's own placeTip) needs to know when
+// the in-flow side panel opens/closes/changes height, since placeTip's
+// floor calculation depends on it -- otherwise a tip pinned before the side
+// panel opened just sits at its old position, on top of the panel's
+// content, instead of shifting down below it. Keyed by universeKey (or
+// "combined") so a re-render (e.g. theme toggle, which calls
+// renderUniverse/renderCombined again) replaces the stale closure instead
+// of piling up a new listener every time.
+const sidePanelListeners = new Map();
+function onSidePanelChange(key, fn) { sidePanelListeners.set(key, fn); }
+function notifySidePanelChange() { sidePanelListeners.forEach(fn => fn()); }
 function renderSidePanelBody(title, rows) {
   const panel = document.getElementById("side-panel");
   if (!panel) return;
@@ -675,11 +687,13 @@ function renderSidePanelBody(title, rows) {
       onClick(nowSelected);
     });
   });
+  notifySidePanelChange();
 }
 function hideSidePanel() {
   const panel = document.getElementById("side-panel");
   if (panel) panel.classList.remove("open");
   clearRibbonIsolation();
+  notifySidePanelChange();
 }
 
 // Highlights the single ribbon matching `pairKey` (an origin::destination
@@ -823,6 +837,16 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     if (panel && !panel.hasAttribute("hidden")) {
       return panel.getBoundingClientRect().bottom + pad;
     }
+    // The side panel (school/conference-pair player list, opened by a
+    // ribbon click) lives in-flow inside filterPanelRowEl -- when it's open
+    // here, floor below it too, same as the filter dropdown above, so a
+    // pinned conference/player-search box never lands on top of it (only
+    // relevant when the shared #side-panel node is CURRENTLY parented in
+    // THIS panel's row, since it's a single node moved between panels).
+    const sidePanel = document.getElementById("side-panel");
+    if (sidePanel && sidePanel.classList.contains("open") && sidePanel.parentElement === filterPanelRowEl) {
+      return sidePanel.getBoundingClientRect().bottom + pad;
+    }
     const toggle = document.getElementById(`filtertoggle-${universeKey}`);
     if (toggle) {
       return toggle.getBoundingClientRect().bottom + pad + 10;
@@ -877,6 +901,17 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     placeTip(pinTooltip, anchorRect);
   }
   function hidePinTip() { pinTooltip.style("display", "none"); }
+
+  // Re-runs placeTip on whichever of the conference/player-search boxes is
+  // currently visible, so they shift down below the side panel the moment
+  // it opens (or back up once it closes) instead of staying wherever they
+  // were last pinned -- see pinTipFilterFloor above and notifySidePanelChange.
+  function repositionPinnedTips() {
+    if (getComputedStyle(pinTooltip.node()).display !== "none") placeTip(pinTooltip);
+    const psTipEl = document.getElementById(`player-search-tip-${universeKey}`);
+    if (psTipEl && getComputedStyle(psTipEl).display !== "none") placeTip(d3.select(psTipEl));
+  }
+  onSidePanelChange(universeKey, repositionPinnedTips);
 
   // ---- filters: chip UI + filtered-count helpers used by ribbon opacity --
   const allDeps = [];
@@ -1885,6 +1920,11 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     if (panel && !panel.hasAttribute("hidden")) {
       return panel.getBoundingClientRect().bottom + pad;
     }
+    // See the matching block in renderUniverse.
+    const sidePanel = document.getElementById("side-panel");
+    if (sidePanel && sidePanel.classList.contains("open") && sidePanel.parentElement === filterPanelRowEl) {
+      return sidePanel.getBoundingClientRect().bottom + pad;
+    }
     const toggle = document.getElementById("filtertoggle-combined");
     if (toggle) {
       return toggle.getBoundingClientRect().bottom + pad + 10;
@@ -1937,6 +1977,15 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     placeTip(pinTooltip, anchorRect);
   }
   function hidePinTip() { pinTooltip.style("display", "none"); }
+
+  // See the matching block in renderUniverse.
+  function repositionPinnedTips() {
+    if (getComputedStyle(pinTooltip.node()).display !== "none") placeTip(pinTooltip);
+    const psTipEl = document.getElementById("player-search-tip-combined");
+    if (psTipEl && getComputedStyle(psTipEl).display !== "none") placeTip(d3.select(psTipEl));
+  }
+  onSidePanelChange("combined", repositionPinnedTips);
+
   function confStatsFor(conf) {
     return confMovementStatsHtml({
       conf,
