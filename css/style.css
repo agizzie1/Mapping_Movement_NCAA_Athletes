@@ -156,6 +156,11 @@ h3.context-heading {
   text-underline-offset: 2px;
 }
 
+.button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .context-wrap {
   position: relative;
   max-height: 130px;
