@@ -154,12 +154,12 @@ h3.context-heading {
 .external-link {
   text-decoration: underline;
   text-underline-offset: 2px;
-}
+} /* makes external style underlined like hyperlink */
 
-.button {
+.button { 
   text-decoration: underline;
   text-underline-offset: 2px;
-}
+} /* makes button style underlined to look like hyperlink */
 
 .context-wrap {
   position: relative;
