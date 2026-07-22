@@ -883,6 +883,40 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   for (const s of prepared.innerLayout) for (const dep of s.departures || []) allDeps.push({ school: s.school, dep, conf: s.conference });
   const filterCtl = buildFilterBar(universeKey, allDeps, prepared.conferenceOrder);
   const filters = filterCtl.filters;
+  // Auto-opened whenever any filter chip is active (see filterCtl.onChange
+  // below) and shows every player matching the current filters across the
+  // WHOLE diagram, not just one ribbon's pair -- lets a filter alone answer
+  // "who matches this" without first having to click into a specific
+  // ribbon. Clicking a specific ribbon still narrows to that pair via
+  // openSegmentPanel (which always wins in the moment, same as before this
+  // feature), but the NEXT filter change (or a click on empty space) reverts
+  // back to this full list -- see closeSegmentPanel and filterCtl.onChange.
+  function showFilteredPlayersPanel() {
+    const matched = allDeps.filter(r => matchesFilters(r.dep, filters, { conf: r.conf, school: r.school }));
+    const rows = matched.map(r => ({
+      name: r.dep.n,
+      detail: `${r.school} &rarr; ${r.dep.t} &middot; ${r.dep.d}<br>${playerMetaHtml(r.dep)}`,
+      onClick: () => openPlayerInfoTip(r.school, r.dep),
+    }));
+    filterPanelMode = "filtered";
+    lastPanelRefresh = showFilteredPlayersPanel;
+    showSidePanel("Filtered players", rows);
+  }
+  // Shared by every "release this ribbon/segment's panel" click site
+  // (toggling off an already-pinned segment, or clicking empty space):
+  // if filters are still active, there's always a principled thing to show
+  // (the full filtered list), so this reverts to that instead of just
+  // closing outright -- only actually closes the panel when no filters are
+  // active at all.
+  function closeSegmentPanel() {
+    if (filtersActive(filters)) {
+      showFilteredPlayersPanel();
+    } else {
+      lastPanelRefresh = null;
+      filterPanelMode = null;
+      hideSidePanel();
+    }
+  }
   function filteredSchoolCount(source, target) {
     const deps = prepared.schoolPlayers.get(source).byTarget.get(target) || [];
     const home = { conf: prepared.innerByName.get(source).conference, school: source };
@@ -996,8 +1030,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
           const segKey = `${d.school}::${seg.target}`;
           if (pin && pin.type === "school" && pin.key === d.school && pinnedSegKey === segKey) {
             setPin(null);
-            hideSidePanel();
-            lastPanelRefresh = null;
+            closeSegmentPanel();
             return;
           }
           setPin({ type: "school", key: d.school });
@@ -1425,10 +1458,13 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     lastPanelRefresh = null;
     if (wasPinned) hideSidePanel(); else openPlayerPanel(school, dep);
   }
-  // A segment/leftover-box click opens the panel via `render`, and also
-  // remembers it so a later filter-chip toggle can recompute the same list
-  // in place instead of leaving it showing stale (pre-filter) rows.
+  // A segment/leftover-box click opens the panel via `render`, narrowed to
+  // that one ribbon's pair -- this always wins in the moment, even over an
+  // already-open filtered-players panel, but the NEXT filter change reverts
+  // back to the full filtered list (see filterCtl.onChange), so this
+  // "manual" mode is intentionally a one-shot override rather than sticky.
   function openSegmentPanel(render) {
+    filterPanelMode = "manual";
     lastPanelRefresh = render;
     render();
   }
@@ -1568,6 +1604,8 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   // Clicking the same entity again, or clicking empty space, releases it.
   let pin = null;
   let lastPanelRefresh = null;
+  // See showFilteredPlayersPanel/closeSegmentPanel above.
+  let filterPanelMode = null; // null | "filtered" | "manual"
   // Which segment (school+target) most recently pinned via a segment click,
   // so re-clicking that exact segment releases the pin while clicking a
   // *different* segment on an already-pinned school just switches the panel
@@ -1669,7 +1707,20 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       renderConferenceChords(gConfChords, hoverActive.key, direction);
     }
     if (pin) redrawPin();
-    if (lastPanelRefresh) lastPanelRefresh();
+    // A filter change always wins the panel: any active filter set shows
+    // the full filtered-players list (overriding an open ribbon-specific
+    // panel too, per the precedence chosen for this feature), and clearing
+    // every filter closes the panel if it was showing that auto list
+    // (leaves a manually-opened ribbon panel alone, unrelated to filters).
+    if (filtersActive(filters)) {
+      showFilteredPlayersPanel();
+    } else if (filterPanelMode === "filtered") {
+      lastPanelRefresh = null;
+      filterPanelMode = null;
+      hideSidePanel();
+    } else if (lastPanelRefresh) {
+      lastPanelRefresh();
+    }
   });
 
   // Opening/closing the filters panel is a deliberate click, not a pan/zoom
@@ -1693,7 +1744,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
 
   svg.on("click", (event) => {
     if (zoomCtl.wasPanned()) return;
-    if (event.target === svgEl) { setPin(null); lastPanelRefresh = null; hideSidePanel(); }
+    if (event.target === svgEl) { setPin(null); closeSegmentPanel(); }
   });
 
   // ---- legend ---------------------------------------------------------
@@ -1900,6 +1951,28 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
   for (const s of [...prepared.fbsSchools, ...prepared.fcsSchools]) for (const dep of s.departures || []) allDeps.push({ school: s.school, dep, conf: s.conference });
   const filterCtl = buildFilterBar("combined", allDeps, [...PALETTES.fbs.conferences, ...PALETTES.fcs.conferences]);
   const filters = filterCtl.filters;
+  // See the matching function/comment in renderUniverse.
+  function showFilteredPlayersPanel() {
+    const matched = allDeps.filter(r => matchesFilters(r.dep, filters, { conf: r.conf, school: r.school }));
+    const rows = matched.map(r => ({
+      name: r.dep.n,
+      detail: `${r.school} &rarr; ${r.dep.t} &middot; ${r.dep.d}<br>${playerMetaHtml(r.dep)}`,
+      onClick: () => openPlayerInfoTip(r.school, r.dep),
+    }));
+    filterPanelMode = "filtered";
+    lastPanelRefresh = showFilteredPlayersPanel;
+    showSidePanel("Filtered players", rows);
+  }
+  // See the matching function/comment in renderUniverse.
+  function closeSegmentPanel() {
+    if (filtersActive(filters)) {
+      showFilteredPlayersPanel();
+    } else {
+      lastPanelRefresh = null;
+      filterPanelMode = null;
+      hideSidePanel();
+    }
+  }
   function filteredSchoolCount(source, target) {
     const deps = prepared.schoolPlayers.get(source).byTarget.get(target) || [];
     const home = { conf: prepared.innerByName.get(source).conference, school: source };
@@ -2018,8 +2091,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
             const segKey = `${d.school}::${seg.target}`;
             if (pin && pin.type === "school" && pin.key === d.school && pinnedSegKey === segKey) {
               setPin(null);
-              hideSidePanel();
-              lastPanelRefresh = null;
+              closeSegmentPanel();
               return;
             }
             setPin({ type: "school", key: d.school });
@@ -2446,10 +2518,13 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     lastPanelRefresh = null;
     if (wasPinned) hideSidePanel(); else openPlayerPanel(school, dep);
   }
-  // A segment/leftover-box click opens the panel via `render`, and also
-  // remembers it so a later filter-chip toggle can recompute the same list
-  // in place instead of leaving it showing stale (pre-filter) rows.
+  // A segment/leftover-box click opens the panel via `render`, narrowed to
+  // that one ribbon's pair -- this always wins in the moment, even over an
+  // already-open filtered-players panel, but the NEXT filter change reverts
+  // back to the full filtered list (see filterCtl.onChange), so this
+  // "manual" mode is intentionally a one-shot override rather than sticky.
   function openSegmentPanel(render) {
+    filterPanelMode = "manual";
     lastPanelRefresh = render;
     render();
   }
@@ -2585,6 +2660,8 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
 
   let pin = null;
   let lastPanelRefresh = null;
+  // See showFilteredPlayersPanel/closeSegmentPanel above.
+  let filterPanelMode = null; // null | "filtered" | "manual"
   // See the matching comment in renderUniverse: tracks which segment
   // (school+target) most recently pinned via a segment click.
   let pinnedSegKey = null;
@@ -2662,7 +2739,16 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
       renderConferenceChords(hoverSame, gCrossChords, hoverActive.key, direction);
     }
     if (pin) redrawPin();
-    if (lastPanelRefresh) lastPanelRefresh();
+    // See the matching block/comment in renderUniverse.
+    if (filtersActive(filters)) {
+      showFilteredPlayersPanel();
+    } else if (filterPanelMode === "filtered") {
+      lastPanelRefresh = null;
+      filterPanelMode = null;
+      hideSidePanel();
+    } else if (lastPanelRefresh) {
+      lastPanelRefresh();
+    }
   });
 
   // See the matching block in renderUniverse.
@@ -2677,7 +2763,7 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
 
   svg.on("click", (event) => {
     if (zoomCtl.wasPanned()) return;
-    if (event.target === svgEl) { setPin(null); lastPanelRefresh = null; hideSidePanel(); }
+    if (event.target === svgEl) { setPin(null); closeSegmentPanel(); }
   });
 
   // ---- legend --------------------------------------------------------------
