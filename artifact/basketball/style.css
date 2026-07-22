@@ -1,3 +1,18 @@
+  @font-face {
+    font-family: 'Supria Sans Black';
+    src: url('fonts/Supria Sans Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Sailec';
+    src: url('fonts/Sailec-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --bg-page:    #f4f3ef;
     --bg-panel:   #fcfcfb;
@@ -9,6 +24,24 @@
     --tooltip-bg: #17160f;
     --tooltip-ink:#fcfcfb;
     --accent:     #b26f00;
+    --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
+    --font-body: 'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+
+    --term-outer:            #ab3821;
+    --term-inner:            #ab6f21;
+    --term-ribbon-color:     #aba721;
+    --term-ribbon-thickness: #78ab21;
+    --term-shade:            #41ab21;
+    --term-gray:             #21ab38;
+    --term-hover:            #21ab6f;
+    --term-click:            #21aba7;
+    --term-click-segment:    #2178ab;
+    --term-filters:          #2141ab;
+    --term-inout:            #3821ab;
+    --term-zoom:             #6f21ab;
+    --term-drag:             #a721ab;
+    --term-scroll:           #ab2178;
+    --term-search:           #ab2141;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -22,6 +55,22 @@
       --tooltip-bg: #f6f5ef;
       --tooltip-ink:#17160f;
       --accent:     #d9a441;
+
+      --term-outer:            #e97d67;
+      --term-inner:            #e9b167;
+      --term-ribbon-color:     #e9e567;
+      --term-ribbon-thickness: #bae967;
+      --term-shade:            #86e967;
+      --term-gray:             #67e97d;
+      --term-hover:            #67e9b1;
+      --term-click:            #67e9e5;
+      --term-click-segment:    #67bae9;
+      --term-filters:          #6786e9;
+      --term-inout:            #7d67e9;
+      --term-zoom:             #b167e9;
+      --term-drag:             #e567e9;
+      --term-scroll:           #e967ba;
+      --term-search:           #e96786;
     }
   }
   :root[data-theme="dark"] {
@@ -35,6 +84,22 @@
     --tooltip-bg: #f6f5ef;
     --tooltip-ink:#17160f;
     --accent:     #d9a441;
+
+    --term-outer:            #e97d67;
+    --term-inner:            #e9b167;
+    --term-ribbon-color:     #e9e567;
+    --term-ribbon-thickness: #bae967;
+    --term-shade:            #86e967;
+    --term-gray:             #67e97d;
+    --term-hover:            #67e9b1;
+    --term-click:            #67e9e5;
+    --term-click-segment:    #67bae9;
+    --term-filters:          #6786e9;
+    --term-inout:            #7d67e9;
+    --term-zoom:             #b167e9;
+    --term-drag:             #e567e9;
+    --term-scroll:           #e967ba;
+    --term-search:           #e96786;
   }
   :root[data-theme="light"] {
     --bg-page:    #f4f3ef;
@@ -47,6 +112,22 @@
     --tooltip-bg: #17160f;
     --tooltip-ink:#fcfcfb;
     --accent:     #b26f00;
+
+    --term-outer:            #ab3821;
+    --term-inner:            #ab6f21;
+    --term-ribbon-color:     #aba721;
+    --term-ribbon-thickness: #78ab21;
+    --term-shade:            #41ab21;
+    --term-gray:             #21ab38;
+    --term-hover:            #21ab6f;
+    --term-click:            #21aba7;
+    --term-click-segment:    #2178ab;
+    --term-filters:          #2141ab;
+    --term-inout:            #3821ab;
+    --term-zoom:             #6f21ab;
+    --term-drag:             #a721ab;
+    --term-scroll:           #ab2178;
+    --term-search:           #ab2141;
   }
 
   * { box-sizing: border-box; }
@@ -54,7 +135,7 @@
     margin: 0; padding: 0;
     background: var(--bg-page);
     color: var(--ink-1);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--font-body);
     font-variant-numeric: tabular-nums;
   }
 
@@ -68,9 +149,11 @@
   }
 
   header h1 {
+    font-family: var(--font-heading);
     font-size: 26px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: -0.01em;
+    text-transform: uppercase;
     margin: 0 0 6px;
     text-wrap: balance;
   }
@@ -81,6 +164,29 @@
     line-height: 1.55;
     max-width: 78ch;
   }
+  .desc { max-width: 1400px; }
+  .desc-lead { margin: 0 0 12px; }
+  .desc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+    row-gap: 14px;
+  }
+  .desc-section { margin-bottom: 0; }
+  .desc-label {
+    font-family: var(--font-heading);
+    margin: 0 0 3px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-1);
+  }
+  .desc-section p { margin: 0 0 6px; }
+  .desc-section p:last-child { margin-bottom: 0; }
+  @media (max-width: 860px) {
+    .desc-grid { grid-template-columns: 1fr; }
+  }
   header .key {
     margin-top: 10px;
     display: flex;
@@ -90,6 +196,22 @@
     color: var(--ink-3);
   }
   header .key b { color: var(--ink-2); font-weight: 600; }
+
+  .term-outer            { color: var(--term-outer) !important; }
+  .term-inner            { color: var(--term-inner) !important; }
+  .term-ribbon-color     { color: var(--term-ribbon-color) !important; }
+  .term-ribbon-thickness { color: var(--term-ribbon-thickness) !important; }
+  .term-shade            { color: var(--term-shade) !important; }
+  .term-gray             { color: var(--term-gray) !important; }
+  .term-hover            { color: var(--term-hover) !important; }
+  .term-click            { color: var(--term-click) !important; }
+  .term-click-segment    { color: var(--term-click-segment) !important; }
+  .term-filters          { color: var(--term-filters) !important; }
+  .term-inout            { color: var(--term-inout) !important; }
+  .term-zoom             { color: var(--term-zoom) !important; }
+  .term-drag             { color: var(--term-drag) !important; }
+  .term-scroll           { color: var(--term-scroll) !important; }
+  .term-search           { color: var(--term-search) !important; }
 
   .view { display: flex; flex-direction: column; gap: 22px; margin-top: 22px; }
 
@@ -117,8 +239,9 @@
     flex-wrap: wrap;
   }
   .panel h2 {
+    font-family: var(--font-heading);
     font-size: 15px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     margin: 0;
@@ -321,9 +444,10 @@
   }
 
   .center-title {
+    font-family: var(--font-heading);
     text-anchor: middle;
     font-size: 15px;
-    font-weight: 650;
+    font-weight: 900;
     fill: var(--ink-1);
   }
   .center-stat {
