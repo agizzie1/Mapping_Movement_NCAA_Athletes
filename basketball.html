@@ -102,3 +102,24 @@
 <script src="js/main.js"></script>
 </body>
 </html>
+
+document.addEventListener("DOMContentLoaded", () => {
+  const lazyFrames = document.querySelectorAll("iframe.artifact-frame[data-src]");
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        iframe.src = iframe.dataset.src;   // this triggers the actual load
+        iframe.removeAttribute("data-src");
+        obs.unobserve(iframe);             // stop watching once loaded
+      }
+    });
+  }, {
+    root: null,           // watch relative to the browser viewport
+    rootMargin: "200px",  // start loading 200px before it's visible
+    threshold: 0           // fire as soon as any part enters that margin
+  });
+
+  lazyFrames.forEach(iframe => observer.observe(iframe));
+});
