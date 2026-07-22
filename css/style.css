@@ -312,6 +312,14 @@ body.football-page {
     url('../assets/bg-texture.jpg');
 }
 
+/* ---------- Basketball page color override ---------- */
+
+body.basketball-page {
+  background-image:
+    linear-gradient(rgba(18, 38, 61, 0.63), rgba(18, 38, 61, 0.63)),
+    url('../assets/bg-texture.jpg');
+}
+
 /* ---------- HAT Lab logo, bottom-right corner ---------- */
 
 .hatlab-corner {
