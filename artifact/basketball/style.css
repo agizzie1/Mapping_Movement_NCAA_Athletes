@@ -1,0 +1,682 @@
+  :root {
+    --bg-page:    #f4f3ef;
+    --bg-panel:   #fcfcfb;
+    --ink-1:      #17160f;
+    --ink-2:      #514f45;
+    --ink-3:      #8b8878;
+    --hairline:   #e2e0d5;
+    --leftover:   #d8d5c8;
+    --tooltip-bg: #17160f;
+    --tooltip-ink:#fcfcfb;
+    --accent:     #b26f00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-page:    #0f0f0d;
+      --bg-panel:   #17170f;
+      --ink-1:      #f6f5ef;
+      --ink-2:      #c7c4b4;
+      --ink-3:      #8b8878;
+      --hairline:   #2c2b23;
+      --leftover:   #3a382e;
+      --tooltip-bg: #f6f5ef;
+      --tooltip-ink:#17160f;
+      --accent:     #d9a441;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg-page:    #0f0f0d;
+    --bg-panel:   #17170f;
+    --ink-1:      #f6f5ef;
+    --ink-2:      #c7c4b4;
+    --ink-3:      #8b8878;
+    --hairline:   #2c2b23;
+    --leftover:   #3a382e;
+    --tooltip-bg: #f6f5ef;
+    --tooltip-ink:#17160f;
+    --accent:     #d9a441;
+  }
+  :root[data-theme="light"] {
+    --bg-page:    #f4f3ef;
+    --bg-panel:   #fcfcfb;
+    --ink-1:      #17160f;
+    --ink-2:      #514f45;
+    --ink-3:      #8b8878;
+    --hairline:   #e2e0d5;
+    --leftover:   #d8d5c8;
+    --tooltip-bg: #17160f;
+    --tooltip-ink:#fcfcfb;
+    --accent:     #b26f00;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-page);
+    color: var(--ink-1);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  header h1 {
+    font-size: 26px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  header p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 14.5px;
+    line-height: 1.55;
+    max-width: 78ch;
+  }
+  header .key {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  header .key b { color: var(--ink-2); font-weight: 600; }
+
+  .view { display: flex; flex-direction: column; gap: 22px; margin-top: 22px; }
+
+  .stage {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(900px, 100%), 1fr));
+    gap: 24px;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .panel h2 {
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--ink-2);
+  }
+  .panel-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .dir-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .dir-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .pin-chip {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    background: var(--hairline);
+    border-radius: 999px;
+    padding: 3px 8px 3px 10px;
+    color: var(--ink-2);
+    max-width: 240px;
+  }
+  .pin-chip.active { display: inline-flex; }
+  .pin-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pin-chip button {
+    appearance: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    flex: none;
+  }
+  .pin-chip button:hover { color: var(--ink-1); }
+  .zoom-controls {
+    display: flex;
+    gap: 4px;
+  }
+  .zoom-controls button {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--hairline);
+    background: var(--bg-panel);
+    color: var(--ink-1);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .zoom-controls button:hover { background: var(--hairline); }
+
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    appearance: none;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--bg-panel);
+    color: var(--ink-2);
+    font-size: 12.5px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .filter-toggle:hover { background: var(--hairline); }
+  .filter-toggle.has-active { border-color: var(--accent); color: var(--ink-1); }
+  .filter-toggle::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-top-color: var(--ink-3);
+    margin-top: -2px;
+  }
+  .filter-toggle.open::before { transform: rotate(180deg); }
+  .filter-count { color: var(--ink-3); font-size: 11.5px; }
+  .filter-clear {
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    visibility: hidden;
+  }
+  .filter-clear.visible { visibility: visible; }
+  /* Holds .filter-panel and, when open, #side-panel (moved in here by
+     positionSidePanel in viz.js) side by side on the same row -- filters on
+     the left, popup on the right, matching each other's height. Whichever
+     of the two is absent/hidden just leaves the other to fill the row on
+     its own, so this needs no separate "paired" vs "solo" styling. Wraps
+     to stack vertically instead of squeezing illegibly on narrow screens.
+     Ported from the football project's viz.js/style.css (2026-07-21). */
+  .filter-panel-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .filter-panel {
+    flex: 1 1 320px;
+    min-width: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--bg-page);
+  }
+  .filter-panel[hidden] { display: none; }
+  .filter-group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+  }
+  .filter-group-label {
+    flex: none;
+    width: 96px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+  .filter-chip {
+    appearance: none;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--bg-panel);
+    color: var(--ink-2);
+    font-size: 11.5px;
+    padding: 3px 9px;
+    cursor: pointer;
+  }
+  .filter-chip:hover { border-color: var(--ink-3); }
+  .filter-chip.active { background: var(--accent); border-color: var(--accent); color: var(--bg-panel); }
+  .tick-dim { opacity: 0.15 !important; }
+  /* Schools run into the hundreds -- cap that one row's height and let it
+     scroll instead of pushing every other filter row down the page. */
+  .filter-chips-scroll {
+    max-height: 84px;
+    overflow-y: auto;
+    align-content: flex-start;
+  }
+
+  .panel .svg-holder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 8px;
+    touch-action: none;
+    cursor: grab;
+  }
+  .panel .svg-holder:active { cursor: grabbing; }
+  .panel svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+  }
+
+  .center-title {
+    text-anchor: middle;
+    font-size: 15px;
+    font-weight: 650;
+    fill: var(--ink-1);
+  }
+  .center-stat {
+    text-anchor: middle;
+    font-size: 11px;
+    fill: var(--ink-3);
+  }
+  .conf-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    fill: var(--ink-1);
+  }
+
+  .outer-school, .inner-seg {
+    stroke: var(--bg-panel);
+    stroke-width: 0.6;
+    transition: opacity 120ms ease;
+    cursor: pointer;
+  }
+  .inner-school { cursor: pointer; }
+  .outer-school.dimmed, .inner-school.dimmed .inner-seg, .inner-school.dimmed .player-tick { opacity: 0.18; }
+
+  /* Individual player lines within an inner-ring segment: invisible (fully
+     merged into the segment's solid color) until zoomed in past the detail
+     threshold, at which point they become independently hoverable/clickable
+     and get a hairline stroke PLUS an alternating brightness band -- the
+     stroke alone all but disappears at typical zoom levels since neighboring
+     ticks share the exact same fill color, so the band is what actually
+     makes each line legible without waiting for extreme zoom. */
+  .player-tick { stroke: none; pointer-events: none; }
+  .zoom-detail .player-tick { pointer-events: auto; stroke: var(--bg-panel); stroke-width: 0.4; cursor: pointer; }
+  .zoom-detail .player-tick:nth-child(even) { filter: brightness(1.12); }
+  .zoom-detail .player-tick:nth-child(odd) { filter: brightness(0.88); }
+  .zoom-detail .player-tick.pin-highlight, .zoom-detail .player-tick:hover { filter: none; }
+
+  .chord { stroke: var(--bg-panel); stroke-width: 0.15; transition: opacity 120ms ease; cursor: pointer; }
+  .chord-conf:hover { opacity: 0.98 !important; }
+  .chord-school { opacity: 0.88; }
+  .chord-school:hover { opacity: 1; }
+  .chord-player { cursor: pointer; }
+  .chord-prior-hop { stroke-width: 1.6; }
+  .chord-prior-hop-selected { stroke-width: 2.6; }
+  .hop-label { cursor: pointer; transition: opacity 120ms ease; }
+  .hop-label circle { stroke: var(--bg-page); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+  .hop-label text {
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-size: 10px;
+    font-weight: 700;
+    fill: #fff;
+    pointer-events: none;
+  }
+  .hop-label-selected circle { stroke-width: 2.5px; }
+  .inner-seg { cursor: pointer; }
+  .conf-label { cursor: pointer; }
+
+  .pin-highlight { stroke: var(--ink-1) !important; stroke-width: 1.6px !important; }
+  .player-tick.pin-highlight { stroke-width: 1px !important; }
+  text.conf-label.pin-highlight { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    padding-top: 6px;
+    border-top: 1px solid var(--hairline);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .legend-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    flex: none;
+  }
+
+  #tooltip {
+    position: fixed;
+    display: none;
+    z-index: 50;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    max-width: 260px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  #tooltip strong { font-weight: 650; }
+
+  #pin-tooltip {
+    position: absolute;
+    display: none;
+    z-index: 49;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    max-width: 260px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  #pin-tooltip strong { font-weight: 650; }
+
+  .player-search {
+    position: relative;
+  }
+  .player-search input {
+    width: 150px;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--ink-1);
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .player-search input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .player-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 55;
+    width: 260px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    padding: 4px;
+  }
+  .player-search-result {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--ink-1);
+    font: inherit;
+    font-size: 12.5px;
+    text-align: left;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .player-search-result:hover { background: var(--hairline); }
+  .psr-name { font-weight: 550; }
+  .psr-school { color: var(--ink-3); font-size: 11.5px; flex: none; }
+
+  .player-search-tip {
+    position: absolute;
+    display: none;
+    z-index: 49;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-ink);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    max-width: 260px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .player-search-tip.ps-active {
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .player-search-tip .ps-close {
+    float: right;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--tooltip-ink);
+    opacity: 0.7;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 4px 8px;
+  }
+  .player-search-tip .ps-close:hover { opacity: 1; }
+  .player-search-tip .ps-name { font-weight: 650; font-size: 13.5px; }
+  .player-search-tip .ps-route { margin-top: 2px; }
+  .player-search-tip .ps-meta { color: var(--tooltip-ink); opacity: 0.75; margin-top: 2px; }
+  .player-search-tip .ps-toggle-prior {
+    display: block;
+    appearance: none;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 8px 0 0;
+  }
+  .player-search-tip .ps-prior-list {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .player-search-tip .ps-prior-row {
+    padding-left: 8px;
+    border-left: 2px solid rgba(255,255,255,0.25);
+    font-size: 11.5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.12s ease, border-left-color 0.12s ease;
+  }
+  .player-search-tip .ps-prior-row:hover { background: rgba(255,255,255,0.08); }
+  .player-search-tip .ps-prior-row-selected {
+    border-left-color: var(--accent);
+    background: rgba(255,255,255,0.12);
+  }
+  .player-search-tip .ps-prior-num {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 15px;
+    text-align: center;
+  }
+  .player-search-tip .ps-prior-row-selected .ps-prior-num {
+    background: var(--accent);
+    color: #fff;
+  }
+  .player-search-tip .ps-prior-year { opacity: 0.7; }
+  .player-search-tip .ps-prior-count {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: 11.5px;
+    opacity: 0.75;
+  }
+  .player-search-tip .ps-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    opacity: 0.6;
+    font-style: italic;
+  }
+
+  /* In normal document flow (JS moves this node into whichever panel's
+     .filter-panel-row triggered it -- see positionSidePanel in viz.js)
+     instead of position: fixed, so it can never float above the filters:
+     it only ever shares a row with .filter-panel, sitting to its right at
+     matching height (align-items: stretch on the row handles that), and
+     pushes the diagram down while open. Scrolling up to reach the filters
+     scrolls this out of view along with them; scrolling back down reveals
+     both again together. Ported from the football project's viz.js/
+     style.css (2026-07-21) -- this used to be a fixed slide-in drawer,
+     independent of the filters panel entirely. */
+  #side-panel {
+    display: none;
+    flex-direction: column;
+    flex: 1 1 320px;
+    min-width: 0;
+    max-width: 420px;
+    max-height: 50vh;
+    background: var(--bg-panel);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    overflow: hidden;
+  }
+  #side-panel.open { display: flex; }
+  #side-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  #side-panel-title {
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--ink-1);
+    line-height: 1.35;
+  }
+  #side-panel-close {
+    flex: none;
+    width: 24px; height: 24px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-3);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #side-panel-close:hover { background: var(--hairline); color: var(--ink-1); }
+  #side-panel-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 14px 14px;
+  }
+  #side-panel-count {
+    padding: 0 14px 8px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .side-panel-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 12.5px;
+  }
+  .side-panel-row:last-child { border-bottom: none; }
+  .side-panel-row.spr-clickable { cursor: pointer; margin: 0 -14px; padding: 7px 14px; }
+  .side-panel-row.spr-clickable:hover { background: var(--bg-page); }
+  .side-panel-row.spr-clickable.selected { background: var(--hairline); }
+  .spr-name { color: var(--ink-1); font-weight: 550; }
+  .spr-detail { color: var(--ink-3); font-size: 11.5px; }
+  .side-panel-empty { padding: 10px 0; color: var(--ink-3); font-size: 12.5px; }
+
+  @media (max-width: 860px) {
+    #side-panel { max-width: none; max-height: 45vh; }
+  }
+
+  footer {
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.6;
+    border-top: 1px solid var(--hairline);
+    padding-top: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .outer-school, .inner-seg, .chord { transition: none; }
+  }
