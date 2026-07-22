@@ -115,7 +115,7 @@ a { color: inherit; text-decoration: none; }
   gap: 24px;
 }
 
-.col-visual img { width: 220px; height: auto; }
+.col-visual img { width: 320px; height: auto; }
 
 .badge-link {
   display: block;
