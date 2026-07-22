@@ -39,11 +39,32 @@
 //     for a stable per-player-event key.
 // ---------------------------------------------------------------------------
 
-function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, routeHtml, playerKey, getPin, setPin, onPriorToggle, onHopSelect }) {
+function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, routeHtml, playerKey, getPin, setPin, onPriorToggle, onHopSelect, schoolInUniverse, levelOfConf }) {
   const tip = d3.select(`#player-search-tip-${universeKey}`);
   let searchedPlayer = null; // one entry from getEntries(), or null
   let priorExpanded = false;
   let selectedHopNum = null; // 1-based, matches each ribbon's own hop number
+
+  // A prior-transfer hop's ribbon only draws on THIS panel's own diagram
+  // when both its schools have an arc position here (see viz.js's
+  // schoolAnchorSpan/renderPriorHopChords) -- a school across an FBS/FCS
+  // split, or a true non-D1 program, never gets a ribbon there, so this
+  // text row is the only place that hop's context shows up at all (2026-07-22
+  // fix). This annotates such a school with its real division + conference
+  // (via the hop's own "fc"/"tc" field, when known) or "(non-D1)" when its
+  // conference was never recorded anywhere in the sheet. `schoolInUniverse`/
+  // `levelOfConf` are both optional -- basketball has no FBS/FCS split, so
+  // it only ever passes `schoolInUniverse`, and every flagged hop falls
+  // through to the plain "(non-D1)" case.
+  function schoolLabel(school, conf) {
+    if (!school) return school;
+    if (!schoolInUniverse || schoolInUniverse(school)) return school;
+    if (conf && levelOfConf) {
+      const level = levelOfConf(conf);
+      if (level === "fbs" || level === "fcs") return `${school} (${level.toUpperCase()} &middot; ${conf})`;
+    }
+    return `${school} (non-D1)`;
+  }
 
   // Each row is numbered 1..N, oldest first -- matching the "Prior Transfer
   // N" ordinal already used for these columns/fields everywhere else, and
@@ -61,13 +82,21 @@ function createPlayerSearchController({ universeKey, d3, getEntries, placeTip, r
       // "f" at all (still an implicit school-only chain), so this falls
       // back to that older dash-prefixed chain behavior for them.
       const from = stop.f || (i === 0 ? "&mdash;" : pt[i - 1].s);
+      // The implicit-chain fallback above has no "fc" of its own for that
+      // borrowed school, so fall back to the previous hop's "tc" (the
+      // conference that same school was recorded under as a destination) --
+      // never applies to football (which always has "fc") or to i === 0
+      // (the dash placeholder, deliberately never labeled).
+      const fromConf = stop.fc || (i > 0 ? pt[i - 1].tc : undefined);
       // "g" (grade at that prior school) is football-only and only present
       // when merge_prior_transfer_grades.py found a matching historical
       // snapshot -- basketball's stops, and any football stop with no
       // match, just fall back to year-only, same as before grades existed.
       const yearText = stop.g ? `${stop.g} &middot; ${stop.y || "Unknown"}` : (stop.y || "Unknown");
       const selected = selectedHopNum === num ? " ps-prior-row-selected" : "";
-      return `<div class="ps-prior-row${selected}" data-hop-num="${num}"><span class="ps-prior-num">${num}</span><div class="ps-prior-text"><div class="ps-prior-route">${from} &rarr; ${stop.s}</div><div class="ps-prior-year">${yearText}</div></div></div>`;
+      const fromLabel = from === "&mdash;" ? from : schoolLabel(from, fromConf);
+      const toLabel = schoolLabel(stop.s, stop.tc);
+      return `<div class="ps-prior-row${selected}" data-hop-num="${num}"><span class="ps-prior-num">${num}</span><div class="ps-prior-text"><div class="ps-prior-route">${fromLabel} &rarr; ${toLabel}</div><div class="ps-prior-year">${yearText}</div></div></div>`;
     }).join("");
   }
 

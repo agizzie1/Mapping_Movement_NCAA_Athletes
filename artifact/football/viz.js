@@ -889,6 +889,13 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       selectedHopNum = num;
       if (pin && pin.type === "player") renderPriorHopChords(pin.school, pin.dep);
     },
+    // Lets priorRowsHtml annotate a prior-transfer school with its actual
+    // division + conference (or "non-D1") whenever that school has no arc
+    // position in THIS panel's own universe -- i.e. exactly the schools
+    // schoolAnchorSpan/renderPriorHopChords would skip a ribbon for, so the
+    // text row is the only place that hop's context appears at all.
+    schoolInUniverse: (school) => prepared.innerByName.has(school),
+    levelOfConf,
   });
 
   // Pinned conference stats box -- shares placeTip/pinTipFilterFloor with
@@ -1968,6 +1975,12 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
       selectedHopNum = num;
       if (pin && pin.type === "player") renderPriorHopChords(pin.school, pin.dep);
     },
+    // See the matching block in renderUniverse. Here `prepared.innerByName`
+    // already merges both FBS and FCS schools, so this only ever flags a
+    // hop's school as unlabeled when it's genuinely non-D1 -- an FBS<->FCS
+    // hop always has a real arc position (and thus a ribbon) in this view.
+    schoolInUniverse: (school) => prepared.innerByName.has(school),
+    levelOfConf,
   });
 
   // See the matching block in renderUniverse.

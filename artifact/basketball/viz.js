@@ -702,6 +702,10 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       selectedHopNum = num;
       if (pin && pin.type === "player") renderPriorHopChords(pin.school, pin.dep);
     },
+    // Lets priorRowsHtml flag a prior-transfer school as "(non-D1)" when it
+    // has no arc position in this diagram (no FBS/FCS split here, so no
+    // levelOfConf -- see the matching, fuller comment in football's viz.js).
+    schoolInUniverse: (school) => prepared.innerByName.has(school),
   });
 
   // Shared by the hover tooltip and the pinned tooltip so both show the
