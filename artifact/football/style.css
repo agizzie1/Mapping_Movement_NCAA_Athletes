@@ -21,8 +21,9 @@
     --ink-3:      #8b8878;
     --hairline:   #e2e0d5;
     --leftover:   #d8d5c8;
-    --tooltip-bg: #17160f;
-    --tooltip-ink:#fcfcfb;
+    --tooltip-bg: #fcfcfb;
+    --tooltip-ink:#17160f;
+    --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
     --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
     --font-body: 'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
@@ -51,8 +52,9 @@
       --ink-3:      #8b8878;
       --hairline:   #2c2b23;
       --leftover:   #3a382e;
-      --tooltip-bg: #f6f5ef;
-      --tooltip-ink:#17160f;
+      --tooltip-bg: #17170f;
+      --tooltip-ink:#f6f5ef;
+      --tooltip-overlay-rgb: 246,245,239;
       --accent:     #d9a441;
 
       --term-outer:            #38bdf8;
@@ -79,8 +81,9 @@
     --ink-3:      #8b8878;
     --hairline:   #2c2b23;
     --leftover:   #3a382e;
-    --tooltip-bg: #f6f5ef;
-    --tooltip-ink:#17160f;
+    --tooltip-bg: #17170f;
+    --tooltip-ink:#f6f5ef;
+    --tooltip-overlay-rgb: 246,245,239;
     --accent:     #d9a441;
 
     --term-outer:            #38bdf8;
@@ -106,8 +109,9 @@
     --ink-3:      #8b8878;
     --hairline:   #e2e0d5;
     --leftover:   #d8d5c8;
-    --tooltip-bg: #17160f;
-    --tooltip-ink:#fcfcfb;
+    --tooltip-bg: #fcfcfb;
+    --tooltip-ink:#17160f;
+    --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
 
     --term-outer:            #0284c7;
@@ -671,7 +675,7 @@
     padding: 0 0 4px 8px;
   }
   .player-search-tip .ps-close:hover { opacity: 1; }
-  .player-search-tip .ps-name { font-weight: 650; font-size: 13.5px; }
+  .player-search-tip .ps-name { font-weight: 800; font-size: 13.5px; }
   .player-search-tip .ps-route { margin-top: 2px; }
   .player-search-tip .ps-meta { color: var(--tooltip-ink); opacity: 0.75; margin-top: 2px; }
   .player-search-tip .ps-toggle-prior {
@@ -688,33 +692,41 @@
   .player-search-tip .ps-prior-list {
     margin-top: 6px;
     padding-top: 6px;
-    border-top: 1px solid rgba(255,255,255,0.18);
+    border-top: 1px solid rgba(var(--tooltip-overlay-rgb),0.18);
     display: flex;
     flex-direction: column;
     gap: 5px;
   }
   .player-search-tip .ps-prior-row {
     padding-left: 8px;
-    border-left: 2px solid rgba(255,255,255,0.25);
+    border-left: 2px solid rgba(var(--tooltip-overlay-rgb),0.25);
     font-size: 11.5px;
     display: flex;
     align-items: flex-start;
     gap: 6px;
     cursor: pointer;
     border-radius: 3px;
-    transition: background 0.12s ease, border-left-color 0.12s ease;
+    transition: background 0.12s ease, border-left-color 0.12s ease, transform 0.12s ease;
   }
-  .player-search-tip .ps-prior-row:hover { background: rgba(255,255,255,0.08); }
+  /* A clearly stronger pop than the rest of the tooltip's hover states --
+     this row's whole job is signaling "clickable", so the accent-colored
+     left edge (normally reserved for the selected row) previews on hover
+     too, plus a small rightward nudge, not just a background tint. */
+  .player-search-tip .ps-prior-row:hover {
+    background: rgba(var(--tooltip-overlay-rgb),0.16);
+    border-left-color: var(--accent);
+    transform: translateX(2px);
+  }
   .player-search-tip .ps-prior-row-selected {
     border-left-color: var(--accent);
-    background: rgba(255,255,255,0.12);
+    background: rgba(var(--tooltip-overlay-rgb),0.12);
   }
   .player-search-tip .ps-prior-num {
     flex: none;
     width: 15px;
     height: 15px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.2);
+    background: rgba(var(--tooltip-overlay-rgb),0.2);
     font-size: 10px;
     font-weight: 700;
     line-height: 15px;
@@ -728,7 +740,7 @@
   .player-search-tip .ps-prior-count {
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.18);
+    border-top: 1px solid rgba(var(--tooltip-overlay-rgb),0.18);
     font-size: 11.5px;
     opacity: 0.75;
   }

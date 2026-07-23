@@ -552,15 +552,21 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     currentZoomK = k;
     refreshRibbonsForZoom();
   });
+  let zoomRefreshQueued = false;
   function refreshRibbonsForZoom() {
-    if (hoverActive) {
-      if (hoverActive.type === "school") renderSchoolChords(gSchoolChords, hoverActive.key, direction);
+     if (zoomRefreshQueued) return;
+      zoomRefreshQueued = true;
+      requestAnimationFrame(() => {
+     zoomRefreshQueued = false;
+       if (hoverActive) {
+       if (hoverActive.type === "school") renderSchoolChords(gSchoolChords, hoverActive.key, direction);
       else renderConferenceChords(gConfChords, hoverActive.key, direction);
     } else if (shouldAutoShow()) {
       renderAllConferenceChords();
     }
     if (pin) redrawPin();
-  }
+  });
+}
 
   const mode = currentMode();
   const colorOf = conf => PALETTE[mode][PALETTE.conferences.indexOf(conf)];
@@ -693,7 +699,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     universeKey, d3,
     getEntries: () => tickRegistry,
     placeTip,
-    routeHtml: (school, dep) => `${school} &mdash; ${depStatusHtml(dep)}`,
+    routeHtml: (school, dep) => `${school} &rarr; ${depStatusHtml(dep)}`,
     playerKey,
     getPin: () => pin,
     setPin: (next) => setPin(next),
@@ -1398,10 +1404,24 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
   function shouldAutoShow() { return showAll || filtersActive(filters); }
 
   // ---- dimming ----------------------------------------------------------
+  let dimmedNodes = new Set();
   function setDim(matchFn) {
-    root.selectAll(".outer-school, .inner-school").classed("dimmed", n => !matchFn(n));
+    const nextDimmed = new Set();
+    root.selectAll(".outer-school, .inner-school").each(function (n) {
+      if (!matchFn(n)) nextDimmed.add(this);
+    });
+    for (const el of dimmedNodes) {
+      if (!nextDimmed.has(el)) el.classList.remove("dimmed");
+    }
+    for (const el of nextDimmed) {
+      if (!dimmedNodes.has(el)) el.classList.add("dimmed");
+    }
+    dimmedNodes = nextDimmed;
   }
-  function clearDim() { root.selectAll(".outer-school, .inner-school").classed("dimmed", false); }
+  function clearDim() {
+    for (const el of dimmedNodes) el.classList.remove("dimmed");
+    dimmedNodes = new Set();
+  }
   function restoreBaseDim() {
     if (!pin) { clearDim(); return; }
     if (pin.type === "conference") setDim(n => n.conference === pin.key);
