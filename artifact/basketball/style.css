@@ -1,3 +1,18 @@
+  @font-face {
+    font-family: 'Supria Sans Black';
+    src: url('fonts/Supria Sans Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Sailec';
+    src: url('fonts/Sailec-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --bg-page:    #f4f3ef;
     --bg-panel:   #fcfcfb;
@@ -10,6 +25,8 @@
     --tooltip-ink:#17160f;
     --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
+    --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
+    --font-body: 'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
 
     --term-outer:            #ea580c;
     --term-inner:            #0369a1;
@@ -122,7 +139,7 @@
     margin: 0; padding: 0;
     background: var(--bg-page);
     color: var(--ink-1);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--font-body);
     font-variant-numeric: tabular-nums;
   }
 
@@ -136,8 +153,9 @@
   }
 
   header h1 {
+    font-family: var(--font-heading);
     font-size: 26px;
-    font-weight: 650;
+    font-weight: 900;
     letter-spacing: -0.01em;
     margin: 0 0 6px;
     text-wrap: balance;
@@ -159,9 +177,10 @@
   }
   .desc-section { margin-bottom: 0; }
   .desc-label {
+    font-family: var(--font-heading);
     margin: 0 0 3px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 900;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--ink-1);
