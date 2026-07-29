@@ -159,6 +159,7 @@
     letter-spacing: -0.01em;
     margin: 0 0 6px;
     text-wrap: balance;
+    text-transform: uppercase;
   }
   header p {
     margin: 0;
