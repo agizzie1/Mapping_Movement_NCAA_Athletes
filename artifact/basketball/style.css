@@ -10,6 +10,22 @@
     --tooltip-ink:#17160f;
     --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
+
+    --term-outer:            #ea580c;
+    --term-inner:            #0369a1;
+    --term-ribbon-color:     #7c3aed;
+    --term-ribbon-thickness: #b45309;
+    --term-shade:            #4d7c0f;
+    --term-gray:             #be123c;
+    --term-hover:            #4338ca;
+    --term-click:            #a16207;
+    --term-click-segment:    #be185d;
+    --term-filters:          #047857;
+    --term-inout:            #a21caf;
+    --term-zoom:             #0e7490;
+    --term-drag:             #b91c1c;
+    --term-scroll:           #7e22ce;
+    --term-search:           #92400e;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -24,6 +40,22 @@
       --tooltip-ink:#f6f5ef;
       --tooltip-overlay-rgb: 246,245,239;
       --accent:     #d9a441;
+
+      --term-outer:            #fb923c;
+      --term-inner:            #38bdf8;
+      --term-ribbon-color:     #a78bfa;
+      --term-ribbon-thickness: #fbbf24;
+      --term-shade:            #a3e635;
+      --term-gray:             #fb7185;
+      --term-hover:            #818cf8;
+      --term-click:            #facc15;
+      --term-click-segment:    #f472b6;
+      --term-filters:          #34d399;
+      --term-inout:            #e879f9;
+      --term-zoom:             #22d3ee;
+      --term-drag:             #f87171;
+      --term-scroll:           #c084fc;
+      --term-search:           #d9a441;
     }
   }
   :root[data-theme="dark"] {
@@ -38,6 +70,22 @@
     --tooltip-ink:#f6f5ef;
     --tooltip-overlay-rgb: 246,245,239;
     --accent:     #d9a441;
+
+    --term-outer:            #fb923c;
+    --term-inner:            #38bdf8;
+    --term-ribbon-color:     #a78bfa;
+    --term-ribbon-thickness: #fbbf24;
+    --term-shade:            #a3e635;
+    --term-gray:             #fb7185;
+    --term-hover:            #818cf8;
+    --term-click:            #facc15;
+    --term-click-segment:    #f472b6;
+    --term-filters:          #34d399;
+    --term-inout:            #e879f9;
+    --term-zoom:             #22d3ee;
+    --term-drag:             #f87171;
+    --term-scroll:           #c084fc;
+    --term-search:           #d9a441;
   }
   :root[data-theme="light"] {
     --bg-page:    #f4f3ef;
@@ -51,6 +99,22 @@
     --tooltip-ink:#17160f;
     --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
+
+    --term-outer:            #ea580c;
+    --term-inner:            #0369a1;
+    --term-ribbon-color:     #7c3aed;
+    --term-ribbon-thickness: #b45309;
+    --term-shade:            #4d7c0f;
+    --term-gray:             #be123c;
+    --term-hover:            #4338ca;
+    --term-click:            #a16207;
+    --term-click-segment:    #be185d;
+    --term-filters:          #047857;
+    --term-inout:            #a21caf;
+    --term-zoom:             #0e7490;
+    --term-drag:             #b91c1c;
+    --term-scroll:           #7e22ce;
+    --term-search:           #92400e;
   }
 
   * { box-sizing: border-box; }
@@ -85,6 +149,28 @@
     line-height: 1.55;
     max-width: 78ch;
   }
+  .desc { max-width: 1400px; }
+  .desc-lead { margin: 0 0 12px; }
+  .desc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+    row-gap: 14px;
+  }
+  .desc-section { margin-bottom: 0; }
+  .desc-label {
+    margin: 0 0 3px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-1);
+  }
+  .desc-section p { margin: 0 0 6px; }
+  .desc-section p:last-child { margin-bottom: 0; }
+  @media (max-width: 860px) {
+    .desc-grid { grid-template-columns: 1fr; }
+  }
   header .key {
     margin-top: 10px;
     display: flex;
@@ -94,6 +180,22 @@
     color: var(--ink-3);
   }
   header .key b { color: var(--ink-2); font-weight: 600; }
+
+  .term-outer            { color: var(--term-outer) !important; }
+  .term-inner            { color: var(--term-inner) !important; }
+  .term-ribbon-color     { color: var(--term-ribbon-color) !important; }
+  .term-ribbon-thickness { color: var(--term-ribbon-thickness) !important; }
+  .term-shade            { color: var(--term-shade) !important; }
+  .term-gray             { color: var(--term-gray) !important; }
+  .term-hover            { color: var(--term-hover) !important; }
+  .term-click            { color: var(--term-click) !important; }
+  .term-click-segment    { color: var(--term-click-segment) !important; }
+  .term-filters          { color: var(--term-filters) !important; }
+  .term-inout            { color: var(--term-inout) !important; }
+  .term-zoom             { color: var(--term-zoom) !important; }
+  .term-drag             { color: var(--term-drag) !important; }
+  .term-scroll           { color: var(--term-scroll) !important; }
+  .term-search           { color: var(--term-search) !important; }
 
   .view { display: flex; flex-direction: column; gap: 22px; margin-top: 22px; }
 
