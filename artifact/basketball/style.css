@@ -1,18 +1,3 @@
-  @font-face {
-    font-family: 'Supria Sans Black';
-    src: url('fonts/Supria Sans Black.otf') format('opentype');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Sailec';
-    src: url('fonts/Sailec-Light.otf') format('opentype');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
-  }
-
   :root {
     --bg-page:    #f4f3ef;
     --bg-panel:   #fcfcfb;
@@ -25,8 +10,6 @@
     --tooltip-ink:#17160f;
     --tooltip-overlay-rgb: 23,22,15;
     --accent:     #b26f00;
-    --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
-    --font-body: 'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
 
     --term-outer:            #ea580c;
     --term-inner:            #0369a1;
@@ -139,7 +122,7 @@
     margin: 0; padding: 0;
     background: var(--bg-page);
     color: var(--ink-1);
-    font-family: var(--font-body);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-variant-numeric: tabular-nums;
   }
 
@@ -153,9 +136,8 @@
   }
 
   header h1 {
-    font-family: var(--font-heading);
     font-size: 26px;
-    font-weight: 900;
+    font-weight: 650;
     letter-spacing: -0.01em;
     margin: 0 0 6px;
     text-wrap: balance;
@@ -170,17 +152,21 @@
   .desc { max-width: 1400px; }
   .desc-lead { margin: 0 0 12px; }
   .desc-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 40px;
-    row-gap: 14px;
+    display: flex;
+    gap: 40px;
+  }
+  .desc-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
   .desc-section { margin-bottom: 0; }
   .desc-label {
-    font-family: var(--font-heading);
     margin: 0 0 3px;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--ink-1);
@@ -188,7 +174,7 @@
   .desc-section p { margin: 0 0 6px; }
   .desc-section p:last-child { margin-bottom: 0; }
   @media (max-width: 860px) {
-    .desc-grid { grid-template-columns: 1fr; }
+    .desc-grid { flex-direction: column; }
   }
   header .key {
     margin-top: 10px;

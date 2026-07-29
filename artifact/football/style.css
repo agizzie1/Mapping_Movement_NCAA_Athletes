@@ -167,10 +167,15 @@
   .desc { max-width: 1400px; }
   .desc-lead { margin: 0 0 12px; }
   .desc-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 40px;
-    row-gap: 14px;
+    display: flex;
+    gap: 40px;
+  }
+  .desc-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
   .desc-section { margin-bottom: 0; }
   .desc-label {
@@ -185,7 +190,7 @@
   .desc-section p { margin: 0 0 6px; }
   .desc-section p:last-child { margin-bottom: 0; }
   @media (max-width: 860px) {
-    .desc-grid { grid-template-columns: 1fr; }
+    .desc-grid { flex-direction: column; }
   }
   header .key {
     margin-top: 10px;
