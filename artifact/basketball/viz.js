@@ -1007,7 +1007,7 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     .attr("data-conf", d => d.conference)
     .each(function (d) {
       const a = midAngle(d);
-      const flipped = a > Math.PI / 2 && a < 3 * Math.PI / 2;
+      const flipped = a > Math.PI;
       const [x, y] = polar(a, geo.outerOuter + 6);
       const rot = (a * 180 / Math.PI) - 90 + (flipped ? 180 : 0);
       d3.select(this)
