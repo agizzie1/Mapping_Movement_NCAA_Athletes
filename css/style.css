@@ -278,16 +278,28 @@ h3.context-heading {
 }
 
 /* ---------- Artifact embed section (Football / Basketball) ---------- */
-
+/* Deliberately a sibling of <main class="page-content"> in the HTML (not
+   nested inside it) so it isn't bound by that element's 1400px max-width
+   + 40px side padding -- this section is meant to run edge-to-edge under
+   the readable text column above it. No max-width/centering here, and no
+   side padding on <body> (see html, body above), so a plain full-width
+   block already reaches both edges without needing 100vw or negative
+   margins. */
 .artifact-section {
   margin-top: 60px;
 }
 
 .artifact-frame {
   width: 100%;
+  /* Starting guess only -- js/main.js's initArtifactAutoHeight() measures
+     the iframe's own (same-origin) document and overwrites this via
+     inline style right after it loads, then keeps it in sync via
+     ResizeObserver as the artifact's content changes height (opening a
+     filter/side panel, switching FBS/FCS/Combined tabs, etc.), so the
+     page has one continuous scrollbar instead of a fixed-height box that
+     either wastes space or clips content into its own inner scrollbar. */
   height: 1400px;
   border: none;
-  border-radius: 4px;
   background: #f4f3ef;
   display: block;
 }
