@@ -782,6 +782,14 @@
   #side-panel-body {
     flex: 1;
     min-height: 0;
+    /* Caps the visible list to 6 rows regardless of viewport height (each
+       .side-panel-row renders at a fixed 61px, plus this element's own
+       4px top padding) instead of relying on #side-panel's own vh-based
+       max-height, which let a tall browser window show 8-10 rows and
+       push the chord diagram itself off screen for a heavily-populated
+       ribbon like a same-conference pair. Ported from the football
+       project's identical fix (2026-08-03). */
+    max-height: 370px;
     overflow-y: auto;
     padding: 4px 14px 14px;
   }
