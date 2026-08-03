@@ -552,21 +552,28 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     currentZoomK = k;
     refreshRibbonsForZoom();
   });
+  // Ported from the football project's viz.js (2026-08-03): this used to
+  // re-run the full render*/redrawPin functions on every animation frame
+  // during a zoom gesture -- tearing down and rebuilding every ribbon
+  // path (plus, for a pin, restoreBaseDim/updatePinIndicator/
+  // playerSearch.refresh) just to update the shrink-on-zoom angle math,
+  // rebinding every path's event listeners each frame. Fine with a
+  // handful of ribbons, visibly janky once "show all"/a busy pin had
+  // dozens+ on screen, since a continuous wheel/pinch gesture fires many
+  // zoom events per second. Every ribbon path now carries its own
+  // pre-shrink angle spec as its D3 datum (set where it's created, see
+  // zoomAwareRibbon's call sites), so a zoom tick only needs to recompute
+  // each existing path's `d` attribute in place -- no DOM removal/
+  // creation, no listener rebinding.
   let zoomRefreshQueued = false;
   function refreshRibbonsForZoom() {
-     if (zoomRefreshQueued) return;
-      zoomRefreshQueued = true;
-      requestAnimationFrame(() => {
-     zoomRefreshQueued = false;
-       if (hoverActive) {
-       if (hoverActive.type === "school") renderSchoolChords(gSchoolChords, hoverActive.key, direction);
-      else renderConferenceChords(gConfChords, hoverActive.key, direction);
-    } else if (shouldAutoShow()) {
-      renderAllConferenceChords();
-    }
-    if (pin) redrawPin();
-  });
-}
+    if (zoomRefreshQueued) return;
+    zoomRefreshQueued = true;
+    requestAnimationFrame(() => {
+      zoomRefreshQueued = false;
+      root.selectAll("path.chord").attr("d", d => d ? zoomAwareRibbon(d) : null);
+    });
+  }
 
   const mode = currentMode();
   const colorOf = conf => PALETTE[mode][PALETTE.conferences.indexOf(conf)];
@@ -1052,12 +1059,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     for (const { seg, deps } of outRibbons) {
       const targetSeg = incomingSegment(prepared.confSubIncoming, seg.target, conf, prepared.innerConfSpans.get(seg.target));
       const label = pairLabel(deps, conf, seg.target);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       layer.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
@@ -1082,12 +1091,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       const myIncoming = prepared.confSubIncoming.get(conf);
       const targetSeg = (myIncoming && myIncoming.segments.find(s => s.target === otherConf)) || mySpan;
       const label = pairLabel(deps, otherConf, conf);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       layer.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(otherConf))
         .attr("stroke", colorOf(otherConf))
         .style("opacity", opacityScale(deps.length))
@@ -1124,12 +1135,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         if (count === 0) continue;
         const targetLayout = prepared.innerByName.get(seg.target);
         const targetSeg = incomingSegment(prepared.schoolSubIncoming, seg.target, school, targetLayout);
+        const spec = {
+          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+        };
         layer.append("path")
+          .datum(spec)
           .attr("class", "chord chord-school chord-out")
-          .attr("d", zoomAwareRibbon({
-            source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-            target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-          }))
+          .attr("d", zoomAwareRibbon(spec))
           .attr("fill", baseColor)
           .attr("stroke", baseColor)
           .attr("data-pair-key", `${school}::${seg.target}`)
@@ -1162,12 +1175,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
         if (!srcSeg) continue;
         const targetSeg = (myIncoming && myIncoming.segments.find(s => s.target === f.source)) || d;
         const srcColor = colorOf(prepared.innerByName.get(f.source).conference);
+        const spec = {
+          source: { startAngle: srcSeg.startAngle, endAngle: srcSeg.endAngle, radius: geo.chordRadius },
+          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+        };
         layer.append("path")
+          .datum(spec)
           .attr("class", "chord chord-school chord-in")
-          .attr("d", zoomAwareRibbon({
-            source: { startAngle: srcSeg.startAngle, endAngle: srcSeg.endAngle, radius: geo.chordRadius },
-            target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-          }))
+          .attr("d", zoomAwareRibbon(spec))
           .attr("fill", srcColor)
           .attr("stroke", srcColor)
           .attr("data-pair-key", `${f.source}::${school}`)
@@ -1196,12 +1211,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     const targetLayout = prepared.innerByName.get(dep.t);
     if (!targetLayout) return;
     const targetSeg = incomingSegment(prepared.schoolSubIncoming, dep.t, school, targetLayout);
+    const spec = {
+      source: { startAngle: a0, endAngle: a1, radius: geo.chordRadius },
+      target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+    };
     const sel = layer.append("path")
+      .datum(spec)
       .attr("class", "chord chord-player")
-      .attr("d", zoomAwareRibbon({
-        source: { startAngle: a0, endAngle: a1, radius: geo.chordRadius },
-        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-      }))
+      .attr("d", zoomAwareRibbon(spec))
       .attr("fill", colorOf(prepared.innerByName.get(school).conference))
       .attr("stroke", colorOf(prepared.innerByName.get(school).conference))
       .style("opacity", 0.95)
@@ -1285,12 +1302,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
       const yearText = stop.y || "Unknown";
       const tipHtml = `<strong>#${num} &mdash; ${dep.n}</strong><br>${stop.f} &rarr; ${stop.s}<br>${yearText}`;
       const hopClick = (event) => { event.stopPropagation(); selectHopFromRibbon(num); };
+      const spec = {
+        source: { startAngle: srcSpan.startAngle, endAngle: srcSpan.endAngle, radius: geo.chordRadius },
+        target: { startAngle: tgtSpan.startAngle, endAngle: tgtSpan.endAngle, radius: geo.chordRadius },
+      };
       gPinPriorChords.append("path")
+        .datum(spec)
         .attr("class", "chord chord-prior-hop" + (selected ? " chord-prior-hop-selected" : ""))
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: srcSpan.startAngle, endAngle: srcSpan.endAngle, radius: geo.chordRadius },
-          target: { startAngle: tgtSpan.startAngle, endAngle: tgtSpan.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", color)
         // .style(), not .attr(), for stroke -- this diagram's base `.chord`
         // CSS rule sets a fixed `stroke: var(--bg-panel)` (an actual
@@ -1369,12 +1388,14 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     for (const { conf, seg, deps } of ribbons) {
       const targetSeg = incomingSegment(prepared.confSubIncoming, seg.target, conf, prepared.innerConfSpans.get(seg.target));
       const label = pairLabel(deps, conf, seg.target);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       gConfChords.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
