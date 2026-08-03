@@ -1639,11 +1639,17 @@ function refreshRibbonsForZoom() {
     setDim(n => n.school === d.school);
   }
 
+  // Was referencing hoverSchoolSame/gCrossChords -- variables that only
+  // exist in renderCombined, never in this function's own scope -- so
+  // every mouseleave off a hovered school threw a ReferenceError before
+  // ever reaching a clear, leaving that school's ribbons (and the dimmed
+  // state) stuck on screen until a different school/conference happened
+  // to be hovered next. gSchoolChords is this panel's own single ribbon
+  // layer that enterSchool draws into, matching how leaveConference below
+  // clears gConfChords.
   function leaveSchool() {
     hoverActive = null;
-    hoverSchoolSame.fbs.selectAll("*").remove();
-    hoverSchoolSame.fcs.selectAll("*").remove();
-    gCrossChords.selectAll("*").remove();
+    gSchoolChords.selectAll("*").remove();
     restoreBaseDim();
     if (shouldAutoShow()) renderAllConferenceChords();
   }
@@ -2763,12 +2769,21 @@ function refreshRibbonsForZoom() {
     renderSchoolChords(hoverSchoolSame, gCrossChords, d.school, direction);
     setDim(n => n.school === d.school);
   }
+  // Was missing a gCrossChords clear (present in leaveConference/
+  // clearAllHover/schedulePlayerHoverClear below) -- renderSchoolChords
+  // clears its own crossGroup on the way IN (entering a new school, or a
+  // conference/player), so this only ever showed up as a stuck ribbon for
+  // a school with at least one FBS<->FCS cross-universe transfer, and only
+  // when the mouse left it for empty space rather than another hover
+  // target -- matches the "certain ribbons stay highlighted" report
+  // exactly. Same conditional shape as leaveConference: skip the direct
+  // clear when auto-show is about to clear+redraw this same layer anyway.
   function leaveSchool() {
     hoverActive = null;
     hoverSchoolSame.fbs.selectAll("*").remove();
     hoverSchoolSame.fcs.selectAll("*").remove();
     restoreBaseDim();
-    if (shouldAutoShow()) renderAllConferenceChords();
+    if (shouldAutoShow()) renderAllConferenceChords(); else gCrossChords.selectAll("*").remove();
   }
   function enterConference(conf) {
     hoverActive = { type: "conference", key: conf };
