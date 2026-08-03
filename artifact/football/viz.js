@@ -766,22 +766,30 @@ function renderUniverse(svgEl, legendEl, universeKey, label, prepared, geo) {
     refreshRibbonsForZoom();
   });
   // Whatever's currently on screen -- a hover fan-out, a pin, or the
-  // filtered "show all" backdrop -- needs its ribbons rebuilt at the new
-  // zoom level so shrinkSpan's width actually updates; these are the same
-  // three cases setDirection and the filter onChange handler each refresh.
+  // filtered "show all" backdrop -- needs its ribbons' angular width
+  // updated at the new zoom level so shrinkSpan's effect actually shows.
+  // This used to re-run the full render*/redrawPin functions (tearing down
+  // and rebuilding every ribbon path, plus rebinding all its event
+  // listeners) on every animation frame during a zoom gesture -- fine when
+  // only a handful of ribbons were on screen, but visibly janky once
+  // "show all"/a busy pin had dozens+ of paths, since a continuous
+  // wheel/pinch gesture fires many zoom events per second. Every ribbon
+  // path now carries its own pre-shrink angle spec as its D3 datum (set
+  // where it's created, see zoomAwareRibbon's call sites), so a zoom tick
+  // only needs to recompute each existing path's `d` attribute in place --
+  // no DOM removal/creation, no listener rebinding. (This was also
+  // silently broken for the hover case: it referenced hoverSchoolSame/
+  // hoverSame/gCrossChords, variables that only exist in renderCombined,
+  // never in this function's own scope -- every zoom tick while hovering
+  // a school/conference threw a ReferenceError here and the ribbons never
+  // got their shrink update at all.)
   let zoomRefreshQueued = false;
 function refreshRibbonsForZoom() {
   if (zoomRefreshQueued) return;
   zoomRefreshQueued = true;
   requestAnimationFrame(() => {
     zoomRefreshQueued = false;
-    if (hoverActive) {
-      if (hoverActive.type === "school") renderSchoolChords(hoverSchoolSame, gCrossChords, hoverActive.key, direction);
-      else renderConferenceChords(hoverSame, gCrossChords, hoverActive.key, direction);
-    } else if (shouldAutoShow()) {
-      renderAllConferenceChords();
-    }
-    if (pin) redrawPin();
+    root.selectAll("path.chord").attr("d", d => d ? zoomAwareRibbon(d) : null);
   });
 }
 
@@ -1235,12 +1243,14 @@ function refreshRibbonsForZoom() {
     for (const { seg, deps } of outRibbons) {
       const targetSeg = incomingSegment(prepared.confSubIncoming, seg.target, conf, prepared.innerConfSpans.get(seg.target));
       const label = pairLabel(deps, conf, seg.target);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       layer.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
@@ -1265,12 +1275,14 @@ function refreshRibbonsForZoom() {
       const myIncoming = prepared.confSubIncoming.get(conf);
       const targetSeg = (myIncoming && myIncoming.segments.find(s => s.target === otherConf)) || mySpan;
       const label = pairLabel(deps, otherConf, conf);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       layer.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(otherConf))
         .attr("stroke", colorOf(otherConf))
         .style("opacity", opacityScale(deps.length))
@@ -1307,12 +1319,14 @@ function refreshRibbonsForZoom() {
         if (count === 0) continue;
         const targetLayout = prepared.innerByName.get(seg.target);
         const targetSeg = incomingSegment(prepared.schoolSubIncoming, seg.target, school, targetLayout);
+        const spec = {
+          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+        };
         layer.append("path")
+          .datum(spec)
           .attr("class", "chord chord-school chord-out")
-          .attr("d", zoomAwareRibbon({
-            source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-            target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-          }))
+          .attr("d", zoomAwareRibbon(spec))
           .attr("fill", baseColor)
           .attr("stroke", baseColor)
           .attr("data-pair-key", `${school}::${seg.target}`)
@@ -1345,12 +1359,14 @@ function refreshRibbonsForZoom() {
         if (!srcSeg) continue;
         const targetSeg = (myIncoming && myIncoming.segments.find(s => s.target === f.source)) || d;
         const srcColor = colorOf(prepared.innerByName.get(f.source).conference);
+        const spec = {
+          source: { startAngle: srcSeg.startAngle, endAngle: srcSeg.endAngle, radius: geo.chordRadius },
+          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+        };
         layer.append("path")
+          .datum(spec)
           .attr("class", "chord chord-school chord-in")
-          .attr("d", zoomAwareRibbon({
-            source: { startAngle: srcSeg.startAngle, endAngle: srcSeg.endAngle, radius: geo.chordRadius },
-            target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-          }))
+          .attr("d", zoomAwareRibbon(spec))
           .attr("fill", srcColor)
           .attr("stroke", srcColor)
           .attr("data-pair-key", `${f.source}::${school}`)
@@ -1383,12 +1399,14 @@ function refreshRibbonsForZoom() {
     const targetLayout = prepared.innerByName.get(dep.t);
     if (!targetLayout) return;
     const targetSeg = incomingSegment(prepared.schoolSubIncoming, dep.t, school, targetLayout);
+    const spec = {
+      source: { startAngle: a0, endAngle: a1, radius: geo.chordRadius },
+      target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+    };
     const sel = layer.append("path")
+      .datum(spec)
       .attr("class", "chord chord-player")
-      .attr("d", zoomAwareRibbon({
-        source: { startAngle: a0, endAngle: a1, radius: geo.chordRadius },
-        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-      }))
+      .attr("d", zoomAwareRibbon(spec))
       .attr("fill", colorOf(prepared.innerByName.get(school).conference))
       .attr("stroke", colorOf(prepared.innerByName.get(school).conference))
       .style("opacity", 0.9)
@@ -1454,12 +1472,14 @@ function refreshRibbonsForZoom() {
       const yearText = stop.g ? `${stop.g} &middot; ${stop.y || "Unknown"}` : (stop.y || "Unknown");
       const tipHtml = `<strong>#${num} &mdash; ${dep.n}</strong><br>${stop.f} &rarr; ${stop.s}<br>${yearText}`;
       const hopClick = (event) => { event.stopPropagation(); selectHopFromRibbon(num); };
+      const spec = {
+        source: { startAngle: srcSpan.startAngle, endAngle: srcSpan.endAngle, radius: geo.chordRadius },
+        target: { startAngle: tgtSpan.startAngle, endAngle: tgtSpan.endAngle, radius: geo.chordRadius },
+      };
       gPinPriorChords.append("path")
+        .datum(spec)
         .attr("class", "chord chord-prior-hop" + (selected ? " chord-prior-hop-selected" : ""))
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: srcSpan.startAngle, endAngle: srcSpan.endAngle, radius: geo.chordRadius },
-          target: { startAngle: tgtSpan.startAngle, endAngle: tgtSpan.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", color).attr("stroke", color)
         .style("opacity", selected ? 0.95 : (selectedHopNum ? 0.25 : 0.6))
         .style("stroke-dasharray", "1 3")
@@ -1539,12 +1559,14 @@ function refreshRibbonsForZoom() {
     for (const { conf, seg, deps } of ribbons) {
       const targetSeg = incomingSegment(prepared.confSubIncoming, seg.target, conf, prepared.innerConfSpans.get(seg.target));
       const label = pairLabel(deps, conf, seg.target);
+      const spec = {
+        source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
+        target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
+      };
       gConfChords.append("path")
+        .datum(spec)
         .attr("class", "chord chord-conf")
-        .attr("d", zoomAwareRibbon({
-          source: { startAngle: seg.startAngle, endAngle: seg.endAngle, radius: geo.chordRadius },
-          target: { startAngle: targetSeg.startAngle, endAngle: targetSeg.endAngle, radius: geo.chordRadius },
-        }))
+        .attr("d", zoomAwareRibbon(spec))
         .attr("fill", colorOf(conf))
         .attr("stroke", colorOf(conf))
         .style("opacity", opacityScale(deps.length))
@@ -1616,12 +1638,16 @@ function refreshRibbonsForZoom() {
     renderSchoolChords(gSchoolChords, d.school, direction);
     setDim(n => n.school === d.school);
   }
+
   function leaveSchool() {
     hoverActive = null;
-    gSchoolChords.selectAll("*").remove();
+    hoverSchoolSame.fbs.selectAll("*").remove();
+    hoverSchoolSame.fcs.selectAll("*").remove();
+    gCrossChords.selectAll("*").remove();
     restoreBaseDim();
     if (shouldAutoShow()) renderAllConferenceChords();
   }
+
   function enterConference(conf) {
     hoverActive = { type: "conference", key: conf };
     gSchoolChords.selectAll("*").remove();
@@ -1898,20 +1924,26 @@ function renderCombined(svgEl, legendEl, prepared, geo) {
     currentZoomK = k;
     refreshRibbonsForZoom();
   });
-  // See the matching function in renderUniverse.
+  // See the matching function in renderUniverse -- same fix here: every
+  // ribbon path stores its raw (pre-shrink) endpoints as its D3 datum
+  // (see appendFlowRibbon/flowRibbonD above), so a zoom tick only needs to
+  // recompute each existing path's `d` in place instead of tearing down
+  // and rebuilding whatever's on screen (hover fan-out, "show all"
+  // backdrop, or a pin) on every animation frame of a zoom gesture. This
+  // was also silently broken before: it called renderSchoolChords/
+  // renderConferenceChords with renderUniverse's single-`layer` argument
+  // shape (`gSchoolChords`/`gConfChords`, which don't even exist in this
+  // function's scope) instead of this function's own `(sameGroups,
+  // crossGroup, ...)` shape -- every zoom tick while hovering a school/
+  // conference threw a ReferenceError here and the ribbons never got
+  // their shrink update at all.
   let zoomRefreshQueued = false;
 function refreshRibbonsForZoom() {
   if (zoomRefreshQueued) return;
   zoomRefreshQueued = true;
   requestAnimationFrame(() => {
     zoomRefreshQueued = false;
-    if (hoverActive) {
-      if (hoverActive.type === "school") renderSchoolChords(gSchoolChords, hoverActive.key, direction);
-      else renderConferenceChords(gConfChords, hoverActive.key, direction);
-    } else if (shouldAutoShow()) {
-      renderAllConferenceChords();
-    }
-    if (pin) redrawPin();
+    root.selectAll("path.chord").attr("d", d => d ? flowRibbonD(d) : null);
   });
 }
 
@@ -2286,32 +2318,48 @@ function refreshRibbonsForZoom() {
   applyFilterDim();
 
   // ---- shared chord-drawing helpers (route to the right layer/coord-space) -
+  // Recomputes a flow ribbon's `d` from its raw (pre-shrink) endpoints --
+  // shared by the initial draw in appendFlowRibbon and by the cheap
+  // zoom-tick update in refreshRibbonsForZoom below, so a zoom gesture can
+  // just re-run this against each path's stored datum instead of tearing
+  // down and rebuilding every ribbon (see the matching zoomAwareRibbon in
+  // renderUniverse for the fuller rationale).
+  function flowRibbonD({ sourceSeg, targetSpan, sourceUniverse, targetUniverse }) {
+    const srcSpan = shrinkSpan(sourceSeg.startAngle, sourceSeg.endAngle, geo.chordRadius);
+    const tgtSpan = shrinkSpan(targetSpan.startAngle, targetSpan.endAngle, geo.chordRadius);
+    if (sourceUniverse === targetUniverse) {
+      return localRibbon({ source: srcSpan, target: tgtSpan });
+    }
+    const srcOff = offsetOf(sourceUniverse), tgtOff = offsetOf(targetUniverse);
+    const midX = (srcOff[0] + tgtOff[0]) / 2;
+    const p1 = polar(srcSpan.startAngle, geo.chordRadius, srcOff);
+    const p2 = polar(srcSpan.endAngle, geo.chordRadius, srcOff);
+    const p3 = polar(tgtSpan.startAngle, geo.chordRadius, tgtOff);
+    const p4 = polar(tgtSpan.endAngle, geo.chordRadius, tgtOff);
+    return crossRibbonPath(p1, p2, p3, p4, midX);
+  }
   function appendFlowRibbon(layer, sourceSeg, targetSpan, sourceUniverse, targetUniverse, fillConf, tipHtml, opts) {
     opts = opts || {};
     // Normally a real, always-valid conference name (colorOfConf handles
     // it); renderPriorHopChords passes opts.fillColor instead when the
     // color needs a neutral-grey fallback for an unresolvable conference.
     const color = opts.fillColor || colorOfConf(fillConf, mode);
-    const srcSpan = shrinkSpan(sourceSeg.startAngle, sourceSeg.endAngle, geo.chordRadius);
-    const tgtSpan = shrinkSpan(targetSpan.startAngle, targetSpan.endAngle, geo.chordRadius);
+    const spec = { sourceSeg, targetSpan, sourceUniverse, targetUniverse };
+    const d = flowRibbonD(spec);
     let sel;
     if (sourceUniverse === targetUniverse) {
       sel = layer.same.append("path")
+        .datum(spec)
         .attr("class", "chord")
-        .attr("d", localRibbon({ source: srcSpan, target: tgtSpan }))
+        .attr("d", d)
         .attr("fill", color)
         .attr("stroke", color)
         .style("opacity", layer.opacity);
     } else {
-      const srcOff = offsetOf(sourceUniverse), tgtOff = offsetOf(targetUniverse);
-      const midX = (srcOff[0] + tgtOff[0]) / 2;
-      const p1 = polar(srcSpan.startAngle, geo.chordRadius, srcOff);
-      const p2 = polar(srcSpan.endAngle, geo.chordRadius, srcOff);
-      const p3 = polar(tgtSpan.startAngle, geo.chordRadius, tgtOff);
-      const p4 = polar(tgtSpan.endAngle, geo.chordRadius, tgtOff);
       sel = layer.cross.append("path")
+        .datum(spec)
         .attr("class", "chord chord-cross")
-        .attr("d", crossRibbonPath(p1, p2, p3, p4, midX))
+        .attr("d", d)
         .attr("fill", color)
         .attr("stroke", color)
         .style("opacity", layer.opacity);
@@ -2747,8 +2795,10 @@ function refreshRibbonsForZoom() {
     playerHoverTimer = setTimeout(() => {
       hoverPlayerSame.fbs.selectAll("*").remove();
       hoverPlayerSame.fcs.selectAll("*").remove();
+      gCrossChords.selectAll("*").remove();
       restoreBaseDim();
       hideTip();
+      if (shouldAutoShow()) renderAllConferenceChords();
     }, 300);
   }
   function enterPlayerTick(school, dep, a0, a1, event) {
@@ -2759,6 +2809,20 @@ function refreshRibbonsForZoom() {
   }
   function leavePlayerTick() {
     schedulePlayerHoverClear();
+  }
+  function clearAllHover() {
+    hoverActive = null;
+    clearTimeout(playerHoverTimer);
+    hoverSame.fbs.selectAll("*").remove();
+    hoverSame.fcs.selectAll("*").remove();
+    hoverSchoolSame.fbs.selectAll("*").remove();
+    hoverSchoolSame.fcs.selectAll("*").remove();
+    hoverPlayerSame.fbs.selectAll("*").remove();
+    hoverPlayerSame.fcs.selectAll("*").remove();
+    gCrossChords.selectAll("*").remove();
+    restoreBaseDim();
+    hideTip();
+    if (shouldAutoShow()) renderAllConferenceChords();
   }
 
   let pin = null;
@@ -2868,6 +2932,7 @@ function refreshRibbonsForZoom() {
     if (zoomCtl.wasPanned()) return;
     if (event.target === svgEl) { setPin(null); closeSegmentPanel(); }
   });
+  svg.on("mouseleave", clearAllHover);
 
   // ---- legend --------------------------------------------------------------
   const legend = d3.select(legendEl);
