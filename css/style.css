@@ -24,6 +24,7 @@
   --color-footer:   #4B4F4B;
   --color-text:     #FFFFFF;
   --color-text-dark:#17160F;
+  --color-accent:   #D9A441;
 
   --font-heading: 'Supria Sans Black', 'Anton', 'Arial Narrow', sans-serif;
   --font-body:    'Sailec', 'Inter', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
@@ -141,6 +142,21 @@ h2.section-heading {
   line-height: 1.6;
   margin: 0 0 18px;
   max-width: 62ch;
+}
+
+/* Marks the FBS/FCS/combined-view mentions in the description as clickable
+   -- underline plus a distinct accent color so they read as links even
+   before hovering, not just plain emphasized text. Clicking jumps into the
+   matching panel of the embedded artifact (see js/main.js's initJumpLinks). */
+.jump-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.jump-link:hover,
+.jump-link:focus-visible {
+  opacity: 0.8;
 }
 
 h3.context-heading {

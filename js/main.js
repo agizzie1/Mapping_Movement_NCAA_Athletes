@@ -52,6 +52,52 @@ function initArtifactAutoHeight() {
   });
 }
 
+// Lets the FBS/FCS/combined-view mentions in the description (see
+// .jump-link in football.html) jump straight to that panel inside the
+// embedded artifact instead of leaving the reader to scroll and hunt for
+// it. Same-origin iframe (see initArtifactAutoHeight above), so its
+// document is directly reachable -- no postMessage needed here either.
+function jumpToArtifactTarget(target) {
+  const frame = document.querySelector('iframe.artifact-frame');
+  const doc = frame && frame.contentDocument;
+  if (!doc) return;
+
+  const wantsSeparate = target === 'fbs' || target === 'fcs';
+  const tabBtn = doc.querySelector(`.tab-btn[data-view="${wantsSeparate ? 'separate' : 'combined'}"]`);
+  if (tabBtn && !tabBtn.classList.contains('active')) tabBtn.click();
+
+  const panelId = target === 'fbs' ? 'panel-fbs' : target === 'fcs' ? 'panel-fcs' : 'panel-combined';
+  const panel = doc.getElementById(panelId);
+  if (!panel) return;
+
+  // Both rects are viewport-relative -- the frame's own position on THIS
+  // page, and the panel's position within the iframe's own layout
+  // viewport (always starts at 0 since scrolling="no" keeps the iframe
+  // exactly as tall as its content, never internally scrolled). Adding
+  // them converts the panel's position into this page's own scroll
+  // coordinates.
+  const frameRect = frame.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const targetY = window.scrollY + frameRect.top + panelRect.top - 24;
+  window.scrollTo({ top: targetY, behavior: 'smooth' });
+
+  // Restart the flash even if this same panel was just flashed a moment
+  // ago (e.g. clicking FBS twice in a row).
+  panel.classList.remove('jump-highlight');
+  void panel.offsetWidth;
+  panel.classList.add('jump-highlight');
+}
+
+function initJumpLinks() {
+  document.querySelectorAll('.jump-link[data-jump]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      jumpToArtifactTarget(link.dataset.jump);
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', initContactToggle);
 document.addEventListener('DOMContentLoaded', initContextToggle);
 document.addEventListener('DOMContentLoaded', initArtifactAutoHeight);
+document.addEventListener('DOMContentLoaded', initJumpLinks);
