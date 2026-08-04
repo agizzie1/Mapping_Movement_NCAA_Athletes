@@ -101,19 +101,28 @@ a { color: inherit; text-decoration: none; }
   padding: 60px 40px 0;
 }
 
+/* The badge is taller than the intro copy at this column's usual width,
+   and as a flex row the taller child (the badge) used to set .two-col's
+   own height, pushing the Context section down to clear it even though
+   the text itself ended well above that point -- the "too much space"
+   the user flagged. Fixed by taking the badge out of flow (anchored
+   top-right) so .two-col's height, and therefore where Context starts,
+   tracks the text column only. The badge is narrow enough (320px) that
+   it never reaches into .col-text's own column (capped below), so it's
+   safe for it to overhang past .two-col's bottom with nothing else in
+   its way. */
 .two-col {
-  display: flex;
-  gap: 60px;
-  align-items: flex-start;
+  position: relative;
 }
 
-.two-col .col-text { flex: 1.4; }
+.two-col .col-text {
+  max-width: calc(100% - 380px);
+}
+
 .two-col .col-visual {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 24px;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .col-visual img { width: 320px; height: auto; }
