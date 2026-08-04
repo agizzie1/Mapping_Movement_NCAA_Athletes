@@ -873,3 +873,18 @@
   @media (prefers-reduced-motion: reduce) {
     .outer-school, .inner-seg, .chord { transition: none; }
   }
+
+  /* Applied to #panel-fbs/#panel-fcs/#panel-combined by the embedding
+     site's own jump links (see main.js's jumpToArtifactTarget) right
+     after scrolling one into view, so a click confirms it landed on the
+     right panel even when that panel was already fully on screen. */
+  @keyframes jump-flash {
+    0%   { box-shadow: 0 0 0 3px var(--accent); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+  }
+  .jump-highlight {
+    animation: jump-flash 1s ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jump-highlight { animation: none; }
+  }
